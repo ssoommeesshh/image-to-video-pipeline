@@ -1,0 +1,55 @@
+{
+  "name": "Newton's Cradle",
+  "description": "Demonstrates conservation of momentum and energy using a classic pendulum-ball setup.",
+  "subject": "Physics",
+  "educational_goal": "Show how motion transfers through the balls in a Newton's Cradle.",
+  "knowledge_source": "manual_json",
+  "metadata": {
+    "difficulty": "beginner",
+    "topic": "mechanics"
+  },
+  "clips": [
+    {
+      "name": "clip_1",
+      "scene": {
+        "scene": "A physics lab table with a Newton's Cradle centered in frame",
+        "camera": "Medium shot, slight front-left angle",
+        "lighting": "Bright, even lab lighting",
+        "objects": ["Newton's Cradle", "lab table", "neutral background"],
+        "background": "Clean laboratory environment"
+      },
+      "prompt_bundle": {
+        "image_prompt": "Static setup of a Newton's Cradle before motion begins.",
+        "motion_prompt": "Pull the leftmost ball back and release it smoothly.",
+        "moving_object": "Leftmost ball",
+        "direction": "toward the center",
+        "motion": "swinging",
+        "constraints": "Keep the motion realistic and physically aligned",
+        "stop_condition": "When the leftmost ball reaches the center and the collision begins",
+        "clip_duration_seconds": 1.0,
+        "negative_prompt": "No extra objects, no camera shake"
+      }
+    },
+    {
+      "name": "clip_2",
+      "scene": {
+        "scene": "The same Newton's Cradle after the first collision, with energy transferring through the balls",
+        "camera": "Same angle as previous clip for continuity",
+        "lighting": "Bright, even lab lighting",
+        "objects": ["Newton's Cradle", "lab table", "neutral background"],
+        "background": "Clean laboratory environment"
+      },
+      "prompt_bundle": {
+        "image_prompt": "Continue the Newton's Cradle sequence from the prior frame.",
+        "motion_prompt": "Show the opposite ball swinging outward after the collision.",
+        "moving_object": "Rightmost ball",
+        "direction": "away from the center",
+        "motion": "swinging",
+        "constraints": "Preserve alignment and keep the frame stable",
+        "stop_condition": "When the rightmost ball reaches its peak arc",
+        "clip_duration_seconds": 1.0,
+        "negative_prompt": "No camera movement, no scene changes"
+      }
+    }
+  ]
+}
