@@ -57,7 +57,7 @@ class VideoStitcher:
 		]
 
 		try:
-			subprocess.run(command, check=True, capture_output=True, text=True)
+			subprocess.run(command, check=True, capture_output=True, text=True, errors="replace")
 		except FileNotFoundError as error:
 			ffmpeg_exe = get_ffmpeg_exe() if get_ffmpeg_exe is not None else "ffmpeg"
 			raise StitchingError(f"{ffmpeg_exe} is not available on this system") from error

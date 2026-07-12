@@ -38,18 +38,86 @@ class LocalVideoGenerator:
 	script_path: str | None = None
 	base_arguments: list[str] = field(default_factory=list)
 	working_directory: str | Path | None = None
+	_process: subprocess.Popen | None = field(default=None, init=False, repr=False)
+	_use_daemon: bool = field(default=True, init=False)
 
 	def generate_clip_video(self, request: VideoGenerationRequest) -> Path:
 		"""Run the configured local command to produce one clip video."""
 
-		input_image_path = Path(request.input_image_path)
-		output_video_path = Path(request.output_video_path)
+		input_image_path = Path(request.input_image_path).resolve()
+		output_video_path = Path(request.output_video_path).resolve()
 
 		if not input_image_path.exists():
 			raise VideoGenerationError(f"Input image does not exist: {input_image_path}")
 
 		output_video_path.parent.mkdir(parents=True, exist_ok=True)
 
+		# Try daemon mode if enabled
+		if self._use_daemon:
+			if self._process is None:
+				# Start the daemon process
+				command = [self.executable, self.script_path, *self.base_arguments, "--daemon"]
+				try:
+					self._process = subprocess.Popen(
+						command,
+						stdin=subprocess.PIPE,
+						stdout=subprocess.PIPE,
+						text=True,
+						cwd=str(self.working_directory) if self.working_directory is not None else None,
+					)
+					
+					# Read READY line to ensure daemon is active
+					ready_line = self._process.stdout.readline()
+					if ready_line.strip() != "READY":
+						self._use_daemon = False
+						if self._process:
+							self._process.kill()
+							self._process = None
+					else:
+						# Daemon started successfully!
+						pass
+				except Exception:
+					self._use_daemon = False
+					if self._process:
+						self._process.kill()
+						self._process = None
+
+			if self._use_daemon and self._process is not None:
+				import json
+				motion_prompt = request.prompt_bundle.motion_prompt or self._compose_motion_prompt(request.prompt_bundle)
+				task = {
+					"input_image": str(input_image_path),
+					"output_video": str(output_video_path),
+					"prompt": motion_prompt,
+					"clip_duration": request.prompt_bundle.clip_duration_seconds,
+					"negative_prompt": request.prompt_bundle.negative_prompt,
+				}
+				
+				try:
+					self._process.stdin.write(json.dumps(task) + "\n")
+					self._process.stdin.flush()
+					
+					response_line = self._process.stdout.readline()
+					if not response_line:
+						raise VideoGenerationError("Video generation daemon crashed during generation.")
+						
+					response = json.loads(response_line)
+					if response.get("status") == "success":
+						if not output_video_path.exists():
+							raise VideoGenerationError(f"Video generation completed but no file was written: {output_video_path}")
+						return output_video_path
+					else:
+						raise VideoGenerationError(f"Video generation daemon error: {response.get('error')}")
+				except Exception as e:
+					if self._process:
+						try:
+							self._process.kill()
+						except Exception:
+							pass
+						self._process = None
+					raise VideoGenerationError(f"Daemon generation failed: {str(e)}") from e
+
+		# Fallback to standard subprocess execution
 		command = self._build_command(request, input_image_path, output_video_path)
 
 		try:
@@ -75,6 +143,21 @@ class LocalVideoGenerator:
 			)
 
 		return output_video_path
+
+	def stop_daemon(self) -> None:
+		"""Exit the daemon process cleanly."""
+		if self._process is not None:
+			import json
+			try:
+				self._process.stdin.write(json.dumps({"action": "exit"}) + "\n")
+				self._process.stdin.flush()
+				self._process.wait(timeout=5)
+			except Exception:
+				try:
+					self._process.kill()
+				except Exception:
+					pass
+			self._process = None
 
 	def _build_command(
 		self,

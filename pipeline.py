@@ -57,48 +57,56 @@ class ExperimentPipeline:
 		clip_video_paths: list[Path] = []
 		previous_frame_path = Path(initial_image_path) if initial_image_path else None
 
-		for index, clip in enumerate(experiment.clips):
-			clip_name = clip.name or f"clip_{index + 1}"
-			clip.name = clip_name
-			self._prepare_clip_directory(clip_name)
+		try:
+			for index, clip in enumerate(experiment.clips):
+				clip_name = clip.name or f"clip_{index + 1}"
+				clip.name = clip_name
+				self._prepare_clip_directory(clip_name)
 
-			prompt_bundle = self.prompt_builder.build_prompt_bundle(experiment, clip)
-			image_prompt_path = self._write_clip_prompts(clip_name, prompt_bundle.image_prompt, prompt_bundle.motion_prompt)
+				prompt_bundle = self.prompt_builder.build_prompt_bundle(experiment, clip)
+				image_prompt_path = self._write_clip_prompts(clip_name, prompt_bundle.image_prompt, prompt_bundle.motion_prompt)
 
-			clip_input_image_path = self._resolve_clip_input_image(
-				clip=clip,
-				clip_name=clip_name,
-				previous_frame_path=previous_frame_path,
-				image_prompt_path=image_prompt_path,
-			)
-
-			output_video_path = Path(self.config.get_clip_video_file(clip_name))
-			generated_video_path = self.video_generator.generate_clip_video(
-				VideoGenerationRequest(
-					input_image_path=clip_input_image_path,
-					output_video_path=output_video_path,
-					prompt_bundle=prompt_bundle,
+				clip_input_image_path = self._resolve_clip_input_image(
+					clip=clip,
 					clip_name=clip_name,
-					metadata={},
+					previous_frame_path=previous_frame_path,
+					image_prompt_path=image_prompt_path,
 				)
-			)
 
-			last_frame_path = self.frame_extractor.extract_last_frame(
-				generated_video_path,
-				self.config.get_clip_frame_file(clip_name),
-			)
+				output_video_path = Path(self.config.get_clip_video_file(clip_name))
+				if output_video_path.exists():
+					print(f"Clip video {output_video_path} already exists. Skipping generation.")
+					generated_video_path = output_video_path
+				else:
+					generated_video_path = self.video_generator.generate_clip_video(
+						VideoGenerationRequest(
+							input_image_path=clip_input_image_path,
+							output_video_path=output_video_path,
+							prompt_bundle=prompt_bundle,
+							clip_name=clip_name,
+							metadata={},
+						)
+					)
 
-			clip.generated_image_path = str(clip_input_image_path)
-			clip.output_clip_path = str(generated_video_path)
-			clip.extracted_frame_path = str(last_frame_path)
-			previous_frame_path = last_frame_path
-			clip_video_paths.append(generated_video_path)
+				last_frame_path = self.frame_extractor.extract_last_frame(
+					generated_video_path,
+					self.config.get_clip_frame_file(clip_name),
+				)
 
-		if not clip_video_paths:
-			raise PipelineError("Experiment has no clips to generate")
+				clip.generated_image_path = str(clip_input_image_path)
+				clip.output_clip_path = str(generated_video_path)
+				clip.extracted_frame_path = str(last_frame_path)
+				previous_frame_path = last_frame_path
+				clip_video_paths.append(generated_video_path)
 
-		final_video_path = self.stitcher.stitch_clips(clip_video_paths, self.config.stitched_video_file)
-		return final_video_path
+			if not clip_video_paths:
+				raise PipelineError("Experiment has no clips to generate")
+
+			final_video_path = self.stitcher.stitch_clips(clip_video_paths, self.config.stitched_video_file)
+			return final_video_path
+		finally:
+			if hasattr(self.video_generator, "stop_daemon"):
+				self.video_generator.stop_daemon()
 
 	def _prepare_directories(self) -> None:
 		Path(self.config.experiment_output_dir).mkdir(parents=True, exist_ok=True)
@@ -131,9 +139,6 @@ class ExperimentPipeline:
 			if provided_image_path.exists():
 				return provided_image_path
 
-		if previous_frame_path and previous_frame_path.exists():
-			return previous_frame_path
-
 		# Repository root (two levels up from this file)
 		repo_root = Path(__file__).resolve().parent.parent
 		package_root = Path(__file__).resolve().parent
@@ -154,32 +159,48 @@ class ExperimentPipeline:
 					return repo_alt
 			return None
 
-		# Candidate: workspace-level input folders (e.g. "input/" or "inputs/")
+		# Helper to resolve check with common image extensions (.png, .jpg, .jpeg, etc.)
+		def _resolve_with_extensions(base_path_with_ext: Path) -> Path | None:
+			resolved = _exists_and_resolve(base_path_with_ext)
+			if resolved:
+				return resolved
+			stem = base_path_with_ext.stem
+			parent = base_path_with_ext.parent
+			for ext in ["png", "jpg", "jpeg", "PNG", "JPG", "JPEG"]:
+				alt_path = parent / f"{stem}.{ext}"
+				resolved = _exists_and_resolve(alt_path)
+				if resolved:
+					return resolved
+			return None
+
+		# 1. Previous frame stitched image (takes precedence for video continuity)
+		if previous_frame_path and previous_frame_path.exists():
+			return previous_frame_path
+
+		# 2. Candidate: clip-specific input inside the clip directory (e.g. manual image for the clip)
+		expected_image_path = Path(self.config.get_clip_image_file(clip_name))
+		resolved = _resolve_with_extensions(expected_image_path)
+		if resolved:
+			print(f"[debug] checking clip-specific image: {expected_image_path} -> resolved={resolved}", file=sys.stderr)
+			return resolved
+
+		# 3. Candidate: workspace-level input folders (e.g. "input/" or "inputs/")
 		workspace_candidates = [
 			Path(self.config.input_dir) / f"{self.config.experiment_name}" / f"input_image.{self.config.default_image_extension}",
 			Path(self.config.input_dir) / f"input_image.{self.config.default_image_extension}",
 		]
 		for p in workspace_candidates:
-			resolved = _exists_and_resolve(p)
+			resolved = _resolve_with_extensions(p)
 			print(f"[debug] checking workspace candidate: {p} -> resolved={resolved}", file=sys.stderr)
 			if resolved:
 				return resolved
 
-		# Candidate: experiment-level shared input (outputs/<experiment>/input/input_image.png)
+		# 4. Candidate: experiment-level shared input (outputs/<experiment>/input/input_image.png)
 		generic_input_image_path = Path(self.config.get_input_image_file())
-		resolved = _exists_and_resolve(generic_input_image_path)
+		resolved = _resolve_with_extensions(generic_input_image_path)
 		if not generic_input_image_path.is_absolute():
 			print(f"[debug] generic alt path: {repo_root / generic_input_image_path} -> exists={(repo_root / generic_input_image_path).exists()}", file=sys.stderr)
 		print(f"[debug] checking generic input image: {generic_input_image_path} -> resolved={resolved}", file=sys.stderr)
-		if resolved:
-			return resolved
-
-		# Candidate: clip-specific input inside the clip directory
-		expected_image_path = Path(self.config.get_clip_image_file(clip_name))
-		resolved = _exists_and_resolve(expected_image_path)
-		if not expected_image_path.is_absolute():
-			print(f"[debug] clip alt path: {repo_root / expected_image_path} -> exists={(repo_root / expected_image_path).exists()}", file=sys.stderr)
-		print(f"[debug] checking clip-specific image: {expected_image_path} -> resolved={resolved}", file=sys.stderr)
 		if resolved:
 			return resolved
 

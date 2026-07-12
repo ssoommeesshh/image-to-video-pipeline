@@ -41,7 +41,7 @@ class WanPreset:
 WAN_PRESETS: dict[str, WanPreset] = {
     "i2v-a14b": WanPreset(
         task="i2v-A14B",
-        size="1280*720",
+        size="832*480",
         model_dir_name="Wan2.2-I2V-A14B",
         sample_fps=16,
         extra_flags=["--offload_model", "True", "--convert_model_dtype", "--t5_cpu"],
@@ -58,13 +58,14 @@ WAN_PRESETS: dict[str, WanPreset] = {
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run Wan 2.2 locally through a stable wrapper.")
-    parser.add_argument("--input-image", required=True, help="Path to the input image.")
-    parser.add_argument("--output-video", required=True, help="Path to write the generated video.")
-    parser.add_argument("--prompt", required=True, help="Motion prompt passed to Wan.")
+    parser.add_argument("--input-image", default=None, help="Path to the input image.")
+    parser.add_argument("--output-video", default=None, help="Path to write the generated video.")
+    parser.add_argument("--prompt", default=None, help="Motion prompt passed to Wan.")
     parser.add_argument("--clip-duration", default="1.0", help="Clip duration in seconds.")
     parser.add_argument("--negative-prompt", default="", help="Optional negative prompt.")
     parser.add_argument("--clip-name", default="", help="Optional clip name for logging.")
     parser.add_argument("--size", default=None, help="Override the default resolution/size for the model preset.")
+    parser.add_argument("--daemon", action="store_true", default=False, help="Run in daemon mode to keep weights loaded across generations.")
 
     parser.add_argument(
         "--wan-repo-dir",
@@ -131,11 +132,17 @@ def _build_generate_command(args: argparse.Namespace) -> list[str]:
         str(frame_num),
         "--ckpt_dir",
         str(model_dir),
-        "--image",
-        str(Path(args.input_image).resolve()),
-        "--prompt",
-        args.prompt,
     ]
+
+    if not args.daemon:
+        command.extend([
+            "--image",
+            str(Path(args.input_image).resolve()),
+            "--prompt",
+            args.prompt,
+        ])
+    else:
+        command.append("--daemon")
 
     command.extend(preset.extra_flags)
 
@@ -143,7 +150,9 @@ def _build_generate_command(args: argparse.Namespace) -> list[str]:
         command.extend(["--n_prompt", args.negative_prompt])
 
     command.extend(args.extra_wan_arg)
-    command.extend([preset.output_flag, str(Path(args.output_video).resolve())])
+
+    if not args.daemon:
+        command.extend([preset.output_flag, str(Path(args.output_video).resolve())])
     return command
 
 
@@ -176,13 +185,18 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
-    output_path = Path(args.output_video)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if not args.daemon:
+        if not args.input_image or not args.output_video or not args.prompt:
+            print("Error: --input-image, --output-video, and --prompt are required when not running in daemon mode.", file=sys.stderr)
+            return 1
 
-    input_image_path = Path(args.input_image)
-    if not input_image_path.exists():
-        print(f"Input image not found: {input_image_path}", file=sys.stderr)
-        return 1
+        output_path = Path(args.output_video)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        input_image_path = Path(args.input_image)
+        if not input_image_path.exists():
+            print(f"Input image not found: {input_image_path}", file=sys.stderr)
+            return 1
 
     try:
         _preflight_gpu_check(args.model_preset)
@@ -191,9 +205,64 @@ def main(argv: list[str] | None = None) -> int:
         print(str(error), file=sys.stderr)
         return 1
 
+    repo_dir_value = args.wan_repo_dir or os.environ.get("WAN_REPO_DIR")
+    cwd = str(Path(repo_dir_value)) if repo_dir_value else None
+
+    if args.daemon:
+        import json
+        try:
+            proc = subprocess.Popen(
+                command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                text=True,
+                cwd=cwd
+            )
+        except Exception as error:
+            print(f"Could not start Wan daemon: {error}", file=sys.stderr)
+            return 1
+
+        # Read READY message from subprocess
+        ready_line = proc.stdout.readline()
+        if ready_line.strip() != "READY":
+            print(f"Error starting daemon, expected READY, got: {ready_line}", file=sys.stderr)
+            proc.kill()
+            return 1
+
+        sys.stdout.write("READY\n")
+        sys.stdout.flush()
+
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
+
+            # Send task to generate.py
+            proc.stdin.write(line)
+            proc.stdin.flush()
+
+            # Wait for response from generate.py
+            response = proc.stdout.readline()
+            if not response:
+                sys.stdout.write(json.dumps({"status": "error", "error": "Daemon process terminated unexpectedly"}) + "\n")
+                sys.stdout.flush()
+                break
+
+            sys.stdout.write(response)
+            sys.stdout.flush()
+
+            try:
+                task = json.loads(line.strip())
+                if task.get("action") == "exit":
+                    break
+            except Exception:
+                pass
+
+        proc.wait()
+        return 0
+
     try:
-        repo_dir_value = args.wan_repo_dir or os.environ.get("WAN_REPO_DIR")
-        subprocess.run(command, check=True, cwd=str(Path(repo_dir_value)), text=True)
+        subprocess.run(command, check=True, cwd=cwd, text=True)
     except FileNotFoundError as error:
         print(f"Could not start Wan command: {error}", file=sys.stderr)
         return 1

@@ -12,43 +12,43 @@
     {
       "name": "clip_1",
       "scene": {
-        "scene": "A physics lab table with a Newton's Cradle centered in frame",
-        "camera": "Medium shot, slight front-left angle",
-        "lighting": "Bright, even lab lighting",
-        "objects": ["Newton's Cradle", "lab table", "neutral background"],
-        "background": "Clean laboratory environment"
+        "scene": "Five identical metallic spheres hanging in a perfectly straight row from a horizontal frame, all touching each other at rest",
+        "camera": "Fixed, front view, centered frame",
+        "lighting": "Even studio lighting, unchanged throughout",
+        "objects": ["five metallic spheres", "horizontal frame", "thin strings"],
+        "background": "Neutral grey"
       },
       "prompt_bundle": {
-        "image_prompt": "Static setup of a Newton's Cradle before motion begins.",
-        "motion_prompt": "Pull the leftmost ball back and release it smoothly.",
-        "moving_object": "Leftmost ball",
-        "direction": "toward the center",
-        "motion": "swinging",
-        "constraints": "Keep the motion realistic and physically aligned",
-        "stop_condition": "When the leftmost ball reaches the center and the collision begins",
+        "image_prompt": "Five identical metallic spheres hanging in a perfectly straight row from a horizontal frame, each on its own thin string, all touching each other at rest. Front view, neutral grey background, even studio lighting, photorealistic, symmetrical framing.",
+        "motion_prompt": "The leftmost sphere swings backward and upward as a rigid pendulum, rotating around its fixed pivot point at the top. The string remains a fixed unstretching length — only the angle changes, not the length. The sphere lifts up and to the left in an arc like a clock pendulum being pulled back, then swings down and strikes the row. The leftmost sphere stops completely on contact and does not bounce back. The middle three and rightmost spheres remain completely stationary throughout. Camera fixed, front view.",
+        "moving_object": "Leftmost sphere only",
+        "direction": "backward and upward to the left, then down toward the row",
+        "motion": "rigid pendulum swing rotating around fixed pivot, stops dead on contact",
+        "constraints": "String remains rigid and fixed length. Pivot point fixed at top. Only leftmost sphere moves. All other four spheres stay completely stationary. No string stretching. No bouncing back after impact.",
+        "stop_condition": "Leftmost sphere stops completely on contact with the row and does not move again",
         "clip_duration_seconds": 1.0,
-        "negative_prompt": "No extra objects, no camera shake"
+        "negative_prompt": "string stretching, string lengthening, rightmost moving, symmetric motion, bouncing back, all balls swinging, double swing, camera movement"
       }
     },
     {
       "name": "clip_2",
       "scene": {
-        "scene": "The same Newton's Cradle after the first collision, with energy transferring through the balls",
-        "camera": "Same angle as previous clip for continuity",
-        "lighting": "Bright, even lab lighting",
-        "objects": ["Newton's Cradle", "lab table", "neutral background"],
-        "background": "Clean laboratory environment"
+        "scene": "Five metallic spheres, leftmost now touching the row having completed its swing and stopped",
+        "camera": "Fixed, front view, same framing as clip 1",
+        "lighting": "Even studio lighting, unchanged",
+        "objects": ["five metallic spheres", "horizontal frame", "thin strings"],
+        "background": "Neutral grey"
       },
       "prompt_bundle": {
-        "image_prompt": "Continue the Newton's Cradle sequence from the prior frame.",
-        "motion_prompt": "Show the opposite ball swinging outward after the collision.",
-        "moving_object": "Rightmost ball",
-        "direction": "away from the center",
-        "motion": "swinging",
-        "constraints": "Preserve alignment and keep the frame stable",
-        "stop_condition": "When the rightmost ball reaches its peak arc",
+        "image_prompt": "",
+        "motion_prompt": "Only the rightmost sphere swings outward and upward to the right as a rigid pendulum rotating around its fixed pivot point at the top. String length unchanged. The leftmost sphere is completely stationary and touching the row. The middle three spheres do not move at all. Camera fixed, front view.",
+        "moving_object": "Rightmost sphere only",
+        "direction": "outward and upward to the right",
+        "motion": "rigid pendulum swing rotating around fixed pivot point to the right only",
+        "constraints": "All other four spheres completely stationary. Leftmost sphere touching row and not moving. Pivot fixed at top. String length unchanged. No symmetric motion.",
+        "stop_condition": "Rightmost sphere reaches peak height on the right side",
         "clip_duration_seconds": 1.0,
-        "negative_prompt": "No camera movement, no scene changes"
+        "negative_prompt": "leftmost sphere moving, symmetric motion, both end balls moving, all balls swinging, any ball bouncing back, camera movement"
       }
     }
   ]

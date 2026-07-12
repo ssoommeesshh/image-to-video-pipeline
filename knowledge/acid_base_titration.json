@@ -1,0 +1,77 @@
+{
+  "name": "Acid-Base Titration",
+  "description": "Demonstrates neutralisation reaction between NaOH and HCl using phenolphthalein indicator. Endpoint detected by permanent pale pink colour change.",
+  "subject": "Chemistry",
+  "educational_goal": "Show the procedure and endpoint detection in a standard acid-base titration.",
+  "knowledge_source": "manual_json",
+  "metadata": {
+    "difficulty": "intermediate",
+    "topic": "volumetric analysis",
+    "class": "12"
+  },
+  "clips": [
+    {
+      "name": "clip_1",
+      "scene": {
+        "scene": "Chemistry laboratory bench, side view at bench height. Glass burette filled with clear colourless NaOH solution mounted vertically on a metal stand with stopcock at bottom. Conical flask containing clear colourless HCl solution with phenolphthalein sitting on a white tile directly below the burette tip.",
+        "camera": "Fixed, side-angle view at bench height, burette tip and flask both fully in frame",
+        "lighting": "Even bright fluorescent laboratory lighting, unchanged throughout",
+        "objects": ["glass burette", "metal stand", "stopcock", "conical flask", "white tile", "student hands"],
+        "background": "Clean laboratory bench"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A chemistry laboratory bench viewed from the side at bench height. A tall glass burette filled with clear colourless liquid mounted vertically on a metal stand with a stopcock at the bottom. Directly below the burette tip sits a glass conical flask containing clear colourless liquid on a white tile. Even bright fluorescent lighting. Sharp focus on glassware. Photorealistic, no text, no labels.",
+        "motion_prompt": "The student's fingers slowly turn the stopcock open at the base of the burette. Clear colourless liquid begins dripping steadily from the tip, roughly one drop per second, falling directly into the colourless liquid in the conical flask below. With the other hand the student grips the neck of the flask and swirls it in a smooth circular motion every few drops, creating gentle ripples on the surface. The liquid inside the flask remains completely clear and colourless throughout — no colour change yet. The liquid level inside the burette slowly drops as it empties. Camera remains completely static, side-angle view at bench height. Even bright fluorescent laboratory lighting stays consistent and unchanged. Sharp focus on the glassware.",
+        "moving_object": "Student hands, liquid drops, flask swirling motion",
+        "direction": "drops falling downward from burette tip into flask",
+        "motion": "steady dripping from burette, gentle circular swirling of flask",
+        "constraints": "Camera completely static. No colour change in flask yet. Lighting unchanged. Flask stays on white tile throughout.",
+        "stop_condition": "Student has added several drops and swirled the flask, liquid remains colourless",
+        "clip_duration_seconds": 4.0,
+        "negative_prompt": "blurry, distorted, extra fingers, warped glassware, sudden zoom, camera shake, flickering lighting, colour change in flask, pink liquid, coloured liquid"
+      }
+    },
+    {
+      "name": "clip_2",
+      "scene": {
+        "scene": "Same laboratory bench, same framing. Burette nearly empty. Flask still contains colourless liquid.",
+        "camera": "Fixed, same side-angle view as clip 1",
+        "lighting": "Even bright fluorescent lighting, unchanged",
+        "objects": ["glass burette", "metal stand", "conical flask", "white tile", "student hands"],
+        "background": "Clean laboratory bench"
+      },
+      "prompt_bundle": {
+        "image_prompt": "",
+        "motion_prompt": "The student adds the final few drops of clear liquid from the burette, one at a time now, much slower than before. After one more drop falls into the flask, the liquid inside instantly turns a faint pale pink — delicate and light, not deep fuchsia. The pink colour spreads evenly through the liquid as the student gently swirls the flask once more. The student then stops adding drops and closes the burette stopcock. The pale pink colour remains steady and does not fade. Camera remains completely static, side-angle view, same framing as before. Even bright fluorescent lighting unchanged. Sharp focus throughout.",
+        "moving_object": "Final drops from burette, student hands swirling flask",
+        "direction": "drops falling into flask, swirling motion in flask",
+        "motion": "slow careful drop addition, instant colour change to pale pink, one final swirl",
+        "constraints": "Camera completely static. Colour change must be pale pink not deep pink or fuchsia. Pink colour must remain after swirling and not fade. Lighting unchanged.",
+        "stop_condition": "Pale pink colour is stable and student has closed the stopcock",
+        "clip_duration_seconds": 3.0,
+        "negative_prompt": "blurry, distorted, extra fingers, camera shake, deep fuchsia, dark pink, colour fading, colour disappearing, colourless again, sudden colour change before the final drop"
+      }
+    },
+    {
+      "name": "clip_3",
+      "scene": {
+        "scene": "Same laboratory bench, same framing. Pale pink liquid settled in flask, no longer being swirled.",
+        "camera": "Fixed, same side-angle view",
+        "lighting": "Even bright fluorescent lighting, unchanged",
+        "objects": ["glass burette", "conical flask with pale pink liquid", "white tile", "student hands"],
+        "background": "Clean laboratory bench"
+      },
+      "prompt_bundle": {
+        "image_prompt": "",
+        "motion_prompt": "The pale pink liquid in the flask sits still and settled, no longer being swirled, the colour steady and unchanged. The student's hand moves up from the flask to the burette, fingers pointing at the liquid level marking on the burette's graduated scale, as if reading the final volume. The student's head tilts slightly forward toward the burette scale, examining the reading closely. The flask remains in place on the white tile, untouched, the pale pink colour clearly visible throughout. Camera remains completely static, same side-angle framing. Even bright fluorescent laboratory lighting unchanged. Sharp focus throughout. Smooth natural realistic motion, no sudden movements.",
+        "moving_object": "Student hand moving up to burette scale, head tilting to read",
+        "direction": "hand moving upward toward burette scale",
+        "motion": "slow deliberate hand movement to read burette, slight head tilt",
+        "constraints": "Camera completely static. Flask must remain untouched and pink throughout. No liquid flowing from burette. Lighting unchanged.",
+        "stop_condition": "Student is reading the burette scale, flask remains still with pink colour visible",
+        "clip_duration_seconds": 2.0,
+        "negative_prompt": "blurry, liquid flowing from burette, colour fading, colour disappearing, camera shake, camera movement, flask moving, pink disappearing"
+      }
+    }
+  ]
+}

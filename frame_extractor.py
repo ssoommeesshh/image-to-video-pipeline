@@ -24,7 +24,7 @@ class FrameExtractor:
 	"""Extracts the final frame from a clip using local ffmpeg tooling."""
 
 	# small offset from end; larger than a few milliseconds to reliably hit a frame
-	frame_offset_seconds: float = 0.05
+	frame_offset_seconds: float = 0.50
 
 	def extract_last_frame(self, video_path: str | Path, output_path: str | Path) -> Path:
 		"""Save the last frame of `video_path` to `output_path`."""
@@ -41,21 +41,21 @@ class FrameExtractor:
 		seek_time = max(duration - self.frame_offset_seconds, 0.0)
 
 		ffmpeg_exe = get_ffmpeg_exe() if get_ffmpeg_exe is not None else "ffmpeg"
-		# use -sseof to seek from end; more reliable for final-frame extraction
+		# use -ss before -i for robust seeking to the last frame without falling off the video end
 		command = [
 			ffmpeg_exe,
 			"-y",
-			"-sseof",
-			f"-{self.frame_offset_seconds}",
+			"-ss",
+			f"{seek_time:.3f}",
 			"-i",
 			str(input_path),
-			"-frames:v",
+			"-update",
 			"1",
 			str(destination_path),
 		]
 
 		try:
-			subprocess.run(command, check=True, capture_output=True, text=True)
+			subprocess.run(command, check=True, capture_output=True, text=True, errors="replace")
 		except FileNotFoundError as error:
 			ffmpeg_exe = get_ffmpeg_exe() if get_ffmpeg_exe is not None else "ffmpeg"
 			raise FrameExtractionError(f"{ffmpeg_exe} is not available on this system") from error
@@ -84,7 +84,7 @@ class FrameExtractor:
 
 		# Try ffprobe first
 		try:
-			result = subprocess.run(ffprobe_cmd, check=True, capture_output=True, text=True)
+			result = subprocess.run(ffprobe_cmd, check=True, capture_output=True, text=True, errors="replace")
 			duration_text = result.stdout.strip()
 			if duration_text:
 				return float(duration_text)
@@ -97,7 +97,7 @@ class FrameExtractor:
 			ffmpeg_exe = get_ffmpeg_exe() if get_ffmpeg_exe is not None else "ffmpeg"
 			cmd = [ffmpeg_exe, "-i", str(video_path)]
 			try:
-				proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
+				proc = subprocess.run(cmd, check=False, capture_output=True, text=True, errors="replace")
 			except FileNotFoundError as e:
 				raise FrameExtractionError("ffmpeg is not available on this system") from e
 			err = proc.stderr or proc.stdout
