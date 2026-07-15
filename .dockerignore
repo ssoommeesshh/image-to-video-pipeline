@@ -1,0 +1,26 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+outputs/
+inputs/
+scratch/
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Exclude download and setup scripts
+download_model.py
+download_via_curl.py
+lightning_setup.sh
+lightning_setup_minimal.sh
+
+# Exclude local test and mock files
+local_dummy_generator.py
+preflight_checks.py
+smoke_test.py
+test_models.py
+

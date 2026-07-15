@@ -62,6 +62,23 @@ class ExperimentPipeline:
 				clip_name = clip.name or f"clip_{index + 1}"
 				clip.name = clip_name
 
+				# Check if this is a static title clip
+				is_title = clip.metadata.get("is_title", False)
+				if is_title:
+					title_text = clip.metadata.get("title_text", "Title Card")
+					clip_duration = float(clip.metadata.get("clip_duration", 3.0))
+					output_video_path = Path(self.config.get_clip_video_file(clip_name))
+					
+					# Generate static video if it doesn't exist
+					if not output_video_path.exists():
+						print(f"[pipeline] Generating static title card video for '{clip_name}' (text: {title_text.replace('\n', ' ')})...", file=sys.stderr)
+						self._generate_title_card_video(title_text, clip_duration, output_video_path)
+					
+					clip_video_paths.append(output_video_path)
+					# Reset continuity so the next scene starts fresh
+					previous_frame_path = None
+					continue
+
 				# Reset previous frame path if this clip transitions to a new scene
 				if clip.metadata.get("new_scene") or clip.metadata.get("is_new_scene"):
 					print(f"[pipeline] Clip '{clip_name}' starts a new scene. Resetting continuity.", file=sys.stderr)
@@ -93,6 +110,20 @@ class ExperimentPipeline:
 							metadata={},
 						)
 					)
+
+				# Evaluate visual continuity between the starting image and first frame of the generated clip
+				try:
+					from evaluator import frame_similarity, extract_frames
+					from PIL import Image
+					clip_frames = extract_frames(generated_video_path, num_frames=1)
+					if clip_frames and clip_input_image_path and Path(clip_input_image_path).exists():
+						input_img = Image.open(clip_input_image_path)
+						similarity = frame_similarity(input_img, clip_frames[0])
+						print(f"[evaluator] Clip '{clip_name}' visual continuity score: {similarity:.4f}", file=sys.stderr)
+						if similarity < 0.55:
+							print(f"⚠️ WARNING: Low visual continuity detected ({similarity:.4f}). The video generator may have warped the starting frame.", file=sys.stderr)
+				except Exception as e:
+					print(f"[evaluator warning] Failed to compute continuity metrics: {e}", file=sys.stderr)
 
 				last_frame_path = self.frame_extractor.extract_last_frame(
 					generated_video_path,
@@ -224,13 +255,89 @@ class ExperimentPipeline:
 				except Exception as e:
 					print(f"Warning: FLUX image generation failed: {e}. Falling back to manual image request.", file=sys.stderr)
 
-		raise ManualImageRequiredError(
-			clip_name=clip_name,
-			expected_image_path=expected_image_path,
-			image_prompt_path=image_prompt_path,
-			message=(
-				f"Manual image required for {clip_name}. "
-				f"Generate an image from prompt file '{image_prompt_path}' and place it at either "
-				f"'{generic_input_image_path}' or '{expected_image_path}'."
-			),
-		)
+		# If all candidates fail, enter an interactive pause loop to wait for manual placement
+		print(f"\n==========================================", file=sys.stderr)
+		print(f"⏸️  PIPELINE PAUSED: Manual image input required", file=sys.stderr)
+		print(f"Clip: {clip_name}", file=sys.stderr)
+		print(f"Image prompt file: {image_prompt_path}", file=sys.stderr)
+		print(f"Please place your generated image at: {expected_image_path}", file=sys.stderr)
+		print(f"==========================================\n", file=sys.stderr)
+
+		while True:
+			resolved = _resolve_with_extensions(expected_image_path)
+			if resolved:
+				print(f"--> Found starting image: {resolved}. Resuming generation...", file=sys.stderr)
+				return resolved
+			
+			try:
+				input("Press [Enter] once you have placed the image to verify, or Ctrl+C to abort... ")
+			except (KeyboardInterrupt, EOFError):
+				print("\nAborting pipeline run...", file=sys.stderr)
+				raise ManualImageRequiredError(
+					clip_name=clip_name,
+					expected_image_path=expected_image_path,
+					image_prompt_path=image_prompt_path,
+					message="Pipeline aborted by user during manual image wait.",
+				)
+
+	def _generate_title_card_video(self, text: str, duration: float, output_path: Path) -> None:
+		"""Generates a static title card video with centered text on a dark background."""
+		from PIL import Image, ImageDraw, ImageFont
+		import numpy as np
+		import imageio.v3 as iio
+
+		# Create dark background image matching Wan 2.2 preset dimensions (832x480)
+		width, height = 832, 480
+		img = Image.new("RGB", (width, height), "#0d0d11")
+		draw = ImageDraw.Draw(img)
+
+		# Add a premium, glowing blue-indigo border line at the top
+		draw.rectangle([(0, 0), (width, 8)], fill="#6366f1")
+
+		# Try to load a bold sans-serif system font
+		font = None
+		font_paths = [
+			"/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+			"/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+			"/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
+		]
+		for p in font_paths:
+			if Path(p).exists():
+				try:
+					font = ImageFont.truetype(p, 36)
+					break
+				except Exception:
+					pass
+		if font is None:
+			font = ImageFont.load_default()
+
+		# Draw multiline text centered on the canvas
+		lines = text.split("\n")
+		# Calculate line height
+		if hasattr(font, "getbbox"):
+			line_height = font.getbbox("A")[3] - font.getbbox("A")[1] + 16
+		else:
+			line_height = 24
+		
+		total_height = len(lines) * line_height
+		start_y = (height - total_height) // 2
+
+		for idx, line in enumerate(lines):
+			if hasattr(font, "getbbox"):
+				bbox = font.getbbox(line)
+				w = bbox[2] - bbox[0]
+			else:
+				w = len(line) * 8
+			x = (width - w) // 2
+			y = start_y + idx * line_height
+			draw.text((x, y), line, fill="#ffffff", font=font)
+
+		# Convert PIL image to stack of frames representing the duration at 16 FPS
+		fps = 16
+		num_frames = int(duration * fps)
+		frame = np.array(img)
+		video_frames = np.repeat(frame[np.newaxis, :, :, :], num_frames, axis=0)
+
+		# Write static video
+		output_path.parent.mkdir(parents=True, exist_ok=True)
+		iio.imwrite(str(output_path), video_frames, fps=fps, codec="libx264")

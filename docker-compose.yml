@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: image-to-video-pipeline:latest
+    environment:
+      # Pass through your HuggingFace Token from host environment
+      - HF_TOKEN=${HF_TOKEN}
+      - HF_HOME=/root/.cache/huggingface
+    volumes:
+      # Mount the pipeline workspace to update code in real-time
+      - .:/app/image-to-video-pipeline
+      # Mount the Wan2.2 repository containing weights and core code
+      - ../Wan2.2:/app/Wan2.2
+      # Mount the Hugging Face cache folder so models (Qwen, etc.) are shared
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # Default execution command matching your Newton's Cradle test run
+    command: >
+      --query "Newton's Cradle"
+      --generator-script wan_local_wrapper.py
+      --wan-repo-dir /app/Wan2.2
+      --wan-model-preset i2v-a14b
+      --experiment-name docker_test_run

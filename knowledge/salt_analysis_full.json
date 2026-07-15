@@ -1,0 +1,173 @@
+{
+  "name": "Full Salt Analysis Procedure",
+  "description": "Comprehensive 1-minute educational demonstration of Lead Nitrate salt analysis including dry heating, flame test, and wet confirmatory reactions.",
+  "subject": "Chemistry",
+  "educational_goal": "Demonstrate visual continuity across multiple scene changes in a single 60-second video.",
+  "clips": [
+    {
+      "name": "clip_1",
+      "scene": {
+        "scene": "A close-up shot of a clean glass test tube held by a metallic holder, containing dry white salt powder.",
+        "camera": "Fixed, close-up centered on test tube",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A high-quality educational photo of a clean glass test tube held by a metallic holder, containing dry white crystalline powder, neutral grey lab background.",
+        "motion_prompt": "A Bunsen burner blue flame is brought close to the bottom of the test tube, the white powder remains dry and still.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_2",
+      "scene": {
+        "scene": "The same glass test tube heated by the burner.",
+        "camera": "Fixed, close-up centered on test tube",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "As the powder continues to be heated, the crystals crackle and shift slightly at the bottom of the tube.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_3",
+      "scene": {
+        "scene": "The heated glass test tube with evolving gas.",
+        "camera": "Fixed, close-up centered on test tube",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "Reddish-brown nitrogen dioxide gas begins to slowly evolve from the heating powder and fill the upper half of the test tube.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_4",
+      "metadata": {
+        "new_scene": true
+      },
+      "scene": {
+        "scene": "A clean platinum wire loop dipped in salt paste held close to a blue burner flame.",
+        "camera": "Fixed macro view of wire loop and burner",
+        "lighting": "Dim lab ambient lighting to emphasize flame color"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A detailed macro photo of a clean platinum wire loop held close to a hot blue Bunsen burner flame, neutral dark background.",
+        "motion_prompt": "The wire loop is slowly moved into the hottest part of the blue burner flame.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_5",
+      "scene": {
+        "scene": "Platinum wire loop in the burner flame starting to color.",
+        "camera": "Fixed macro view of wire loop and flame",
+        "lighting": "Dim lab ambient lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "The flame color starts to tint with orange-red hues around the platinum loop.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_6",
+      "scene": {
+        "scene": "Platinum wire loop showing strong flame test result.",
+        "camera": "Fixed macro view of wire loop and flame",
+        "lighting": "Dim lab ambient lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "The burner flame turns a brilliant brick-red/crimson color as the salt completely vaporizes.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_7",
+      "metadata": {
+        "new_scene": true
+      },
+      "scene": {
+        "scene": "A dropper filled with clear potassium iodide solution held above a test tube containing clear salt solution.",
+        "camera": "Close-up centered on dropper and test tube mouth",
+        "lighting": "Bright lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A clean photo of a glass test tube containing clear aqueous solution, with a plastic dropper filled with clear liquid positioned above the mouth, grey background.",
+        "motion_prompt": "A single drop of clear liquid is released from the dropper and falls towards the solution.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_8",
+      "scene": {
+        "scene": "Precipitate forming in the test tube.",
+        "camera": "Close-up centered on test tube body",
+        "lighting": "Bright lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "As the droplet mixes into the clear solution, a brilliant yellow cloud of precipitate instantly blooms and spreads downwards.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_9",
+      "scene": {
+        "scene": "Settled precipitate in the test tube.",
+        "camera": "Close-up centered on test tube body",
+        "lighting": "Bright lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "The yellow cloud settles, leaving a thick, bright yellow solid precipitate at the bottom of the clear liquid.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_10",
+      "metadata": {
+        "new_scene": true
+      },
+      "scene": {
+        "scene": "A wooden test tube rack holding the three reaction tubes side-by-side.",
+        "camera": "Medium shot of lab table",
+        "lighting": "Bright lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A high-quality photo of a wooden test tube rack on a lab table holding three test tubes: one with dry residue, one with a crimson flame test wire, and one with yellow precipitate.",
+        "motion_prompt": "The camera slowly pans across the rack, showing the three distinct experiment results.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_11",
+      "scene": {
+        "scene": "Lab bench overview.",
+        "camera": "Medium shot of lab table",
+        "lighting": "Bright lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "A pair of safety goggles is gently placed on the table next to the test tube rack.",
+        "clip_duration": 5.0
+      }
+    },
+    {
+      "name": "clip_12",
+      "scene": {
+        "scene": "Educational summary blackboard in the background.",
+        "camera": "Medium shot shifting to the background chalkboard",
+        "lighting": "Bright lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "The camera tilts up to show a chalkboard in the background with balanced chemical equations for lead nitrate heating and precipitation written in white chalk.",
+        "clip_duration": 5.0
+      }
+    }
+  ]
+}

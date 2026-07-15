@@ -1,0 +1,103 @@
+{
+  "name": "Ammonium and Chloride Confirmatory Tests",
+  "description": "Educational sequence showing confirmatory tests for Ammonium cation (NaOH + glass rod test, Nessler's test) and Chloride anion (Silver Nitrate test) with text title cards in between.",
+  "subject": "Chemistry",
+  "educational_goal": "Demonstrate visual representation of chemical confirmation tests with smooth title card transitions in between.",
+  "clips": [
+    {
+      "name": "title_naoh",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Ammonium Cation Confirmation:\nSodium Hydroxide & Glass Rod Test",
+        "clip_duration": 3.0
+      }
+    },
+    {
+      "name": "clip_1",
+      "scene": {
+        "scene": "Setup of Sodium Hydroxide test. Glass test tube with salt solution and a dropper above.",
+        "camera": "Fixed close-up centered on test tube and dropper",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A macro photo of a clean glass test tube held by a holder containing dry white salt powder, with a dropper containing clear liquid positioned above the tube mouth, neutral laboratory background.",
+        "motion_prompt": "Clear liquid drops fall downward from the dropper into the test tube. The drops land on the white powder and the mixture slowly fizzes and releases a faint colorless gas rising upward from the tube mouth.",
+        "clip_duration": 3.0
+      }
+    },
+    {
+      "name": "clip_2",
+      "scene": {
+        "scene": "Dense white fumes rising from the heated test tube mouth.",
+        "camera": "Fixed close-up centered on test tube mouth",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "Dense white fumes of ammonium chloride rise steadily from the mouth of the test tube and drift upward into the air above.",
+        "clip_duration": 3.0
+      }
+    },
+    {
+      "name": "title_nessler",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Ammonium Cation Confirmation:\nNessler's Reagent Test",
+        "clip_duration": 3.0
+      }
+    },
+    {
+      "name": "clip_3",
+      "metadata": {
+        "new_scene": true
+      },
+      "scene": {
+        "scene": "Setup of Nessler's reagent test. Glass test tube with clear salt solution and a dropper containing Nessler's reagent held directly above.",
+        "camera": "Close-up centered on test tube and dropper",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A close-up photo of a glass test tube containing a clear, transparent solution on a rack, with a dropper containing a pale yellow liquid positioned right above it, neutral dark background.",
+        "motion_prompt": "Drops of pale yellow liquid fall from the dropper into the clear solution. Where the drops contact the liquid, a dense orange-brown cloud of precipitate forms and slowly sinks downward.",
+        "clip_duration": 3.0
+      }
+    },
+    {
+      "name": "title_silver_nitrate",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Chloride Anion Confirmation:\nSilver Nitrate Test",
+        "clip_duration": 3.0
+      }
+    },
+    {
+      "name": "clip_4",
+      "metadata": {
+        "new_scene": true
+      },
+      "scene": {
+        "scene": "Setup of Silver Nitrate test. Glass test tube with clear salt solution and a dropper containing AgNO3 solution held directly above.",
+        "camera": "Close-up centered on test tube and dropper",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A close-up photo of a glass test tube containing a clear liquid solution, with a dropper containing a clear solution positioned above the mouth, neutral dark background.",
+        "motion_prompt": "Clear drops fall from the dropper into the solution. On contact, a thick white curdy solid precipitate instantly forms in the liquid, turning it cloudy and opaque.",
+        "clip_duration": 3.0
+      }
+    },
+    {
+      "name": "clip_5",
+      "scene": {
+        "scene": "White precipitate in the test tube beginning to dissolve.",
+        "camera": "Close-up centered on test tube body",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "More clear liquid is added to the cloudy white mixture. The white precipitate slowly dissolves and the solution gradually becomes clear and transparent again.",
+        "clip_duration": 4.0
+      }
+    }
+  ]
+}
