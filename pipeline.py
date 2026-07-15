@@ -61,6 +61,12 @@ class ExperimentPipeline:
 			for index, clip in enumerate(experiment.clips):
 				clip_name = clip.name or f"clip_{index + 1}"
 				clip.name = clip_name
+
+				# Reset previous frame path if this clip transitions to a new scene
+				if clip.metadata.get("new_scene") or clip.metadata.get("is_new_scene"):
+					print(f"[pipeline] Clip '{clip_name}' starts a new scene. Resetting continuity.", file=sys.stderr)
+					previous_frame_path = None
+
 				self._prepare_clip_directory(clip_name)
 
 				prompt_bundle = self.prompt_builder.build_prompt_bundle(experiment, clip)
@@ -203,6 +209,20 @@ class ExperimentPipeline:
 		print(f"[debug] checking generic input image: {generic_input_image_path} -> resolved={resolved}", file=sys.stderr)
 		if resolved:
 			return resolved
+
+		# Try generating the image with FLUX
+		if image_prompt_path.exists():
+			image_prompt = image_prompt_path.read_text(encoding="utf-8").strip()
+			if image_prompt:
+				try:
+					print(f"No initial image found. Attempting to generate starting image using FLUX.1-dev...", file=sys.stderr)
+					from image_generator import generate_image_from_prompt
+					generate_image_from_prompt(image_prompt, expected_image_path)
+					if expected_image_path.exists():
+						print(f"Successfully generated starting image and saved to: {expected_image_path}", file=sys.stderr)
+						return expected_image_path
+				except Exception as e:
+					print(f"Warning: FLUX image generation failed: {e}. Falling back to manual image request.", file=sys.stderr)
 
 		raise ManualImageRequiredError(
 			clip_name=clip_name,

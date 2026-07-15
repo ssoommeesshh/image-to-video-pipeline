@@ -25,8 +25,13 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--knowledge-file",
-        required=True,
+        default=None,
         help="Path to the manual experiment knowledge JSON file.",
+    )
+    parser.add_argument(
+        "--query",
+        default=None,
+        help="Natural language query to search or generate experiment steps (RAG).",
     )
     parser.add_argument(
         "--experiment-name",
@@ -38,19 +43,20 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional initial image file for the first clip.",
     )
+    pipeline_dir = Path(__file__).resolve().parent
     parser.add_argument(
         "--output-dir",
-        default="outputs",
+        default=str(pipeline_dir / "outputs"),
         help="Base output directory for generated clips and final video.",
     )
     parser.add_argument(
         "--knowledge-dir",
-        default="knowledge",
+        default=str(pipeline_dir / "knowledge"),
         help="Knowledge directory label used in configuration.",
     )
     parser.add_argument(
         "--input-dir",
-        default="inputs",
+        default=str(pipeline_dir / "inputs"),
         help="Input directory label used in configuration.",
     )
     parser.add_argument(
@@ -92,7 +98,22 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
-    knowledge_path = Path(args.knowledge_file)
+    if not args.knowledge_file and not args.query:
+        print("Error: Either --knowledge-file or --query must be provided.", file=sys.stderr)
+        return 1
+
+    if args.query:
+        print(f"Running RAG lookup/generation for query: '{args.query}'...", file=sys.stderr)
+        from rag_interface import lookup_or_generate, store
+        try:
+            experiment_dict = lookup_or_generate(args.query)
+            knowledge_path = store(experiment_dict)
+        except Exception as e:
+            print(f"Error performing RAG query/generation: {e}", file=sys.stderr)
+            return 1
+    else:
+        knowledge_path = Path(args.knowledge_file)
+
     if not knowledge_path.exists():
         print(f"Knowledge file not found: {knowledge_path}", file=sys.stderr)
         return 1

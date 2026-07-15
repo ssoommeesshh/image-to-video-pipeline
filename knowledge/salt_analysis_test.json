@@ -1,0 +1,50 @@
+{
+  "name": "Salt Analysis Test",
+  "description": "Verification of multi-scene execution logic in the pipeline.",
+  "subject": "Chemistry",
+  "educational_goal": "Demonstrate transitioning between two different laboratory scene setups in one pipeline execution.",
+  "clips": [
+    {
+      "name": "clip_1",
+      "scene": {
+        "scene": "A close-up shot of a glass test tube held by a metallic holder containing dry white salt powder.",
+        "camera": "Fixed, close-up centered on test tube",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A clean photo of a glass test tube held by a metallic holder containing white salt powder, neutral grey background.",
+        "motion_prompt": "A burner flame heats the bottom of the test tube, white powder is dry and still.",
+        "clip_duration": 1.0
+      }
+    },
+    {
+      "name": "clip_2",
+      "scene": {
+        "scene": "The same glass test tube held by the holder.",
+        "camera": "Fixed, close-up centered on test tube",
+        "lighting": "Clear lab lighting"
+      },
+      "prompt_bundle": {
+        "image_prompt": "null",
+        "motion_prompt": "Crackle sounds can be heard as white gas begins to slowly evolve from the heating powder.",
+        "clip_duration": 1.0
+      }
+    },
+    {
+      "name": "clip_3",
+      "metadata": {
+        "new_scene": true
+      },
+      "scene": {
+        "scene": "A clean platinum wire loop dipped in salt paste held in a hot blue Bunsen burner flame.",
+        "camera": "Fixed macro view of wire loop and flame",
+        "lighting": "Dim lab ambient lighting to emphasize flame color"
+      },
+      "prompt_bundle": {
+        "image_prompt": "A detailed macro photo of a clean platinum wire loop held in a hot blue Bunsen burner flame, neutral dark background.",
+        "motion_prompt": "The flame changes color to a brilliant crimson red flame color as the salt vaporizes.",
+        "clip_duration": 1.0
+      }
+    }
+  ]
+}

@@ -44,14 +44,14 @@ WAN_PRESETS: dict[str, WanPreset] = {
         size="832*480",
         model_dir_name="Wan2.2-I2V-A14B",
         sample_fps=16,
-        extra_flags=["--offload_model", "True", "--convert_model_dtype", "--t5_cpu"],
+        extra_flags=["--offload_model", "True", "--convert_model_dtype"],
     ),
     "ti2v-5b": WanPreset(
         task="ti2v-5B",
         size="1280*704",
         model_dir_name="Wan2.2-TI2V-5B",
         sample_fps=24,
-        extra_flags=["--offload_model", "True", "--convert_model_dtype", "--t5_cpu"],
+        extra_flags=["--offload_model", "True", "--convert_model_dtype"],
     ),
 }
 
@@ -142,6 +142,15 @@ def _build_generate_command(args: argparse.Namespace) -> list[str]:
             args.prompt,
         ])
     else:
+        # Pass dummy values so generate.py does not fall back to the cat
+        # example defaults before entering the daemon loop (lines 68-71
+        # in generate.py fill in example prompt/image when args are None).
+        command.extend([
+            "--image",
+            str((Path(args.wan_repo_dir or os.environ.get("WAN_REPO_DIR", "")) / "examples" / "i2v_input.JPG").resolve()),
+            "--prompt",
+            "placeholder",
+        ])
         command.append("--daemon")
 
     command.extend(preset.extra_flags)
@@ -209,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
     cwd = str(Path(repo_dir_value)) if repo_dir_value else None
 
     if args.daemon:
-        import json
+        import json as _json
         try:
             proc = subprocess.Popen(
                 command,
@@ -222,7 +231,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Could not start Wan daemon: {error}", file=sys.stderr)
             return 1
 
-        # Read READY message from subprocess
         ready_line = proc.stdout.readline()
         if ready_line.strip() != "READY":
             print(f"Error starting daemon, expected READY, got: {ready_line}", file=sys.stderr)
@@ -237,26 +245,52 @@ def main(argv: list[str] | None = None) -> int:
             if not line:
                 break
 
-            # Send task to generate.py
-            proc.stdin.write(line)
-            proc.stdin.flush()
-
-            # Wait for response from generate.py
-            response = proc.stdout.readline()
-            if not response:
-                sys.stdout.write(json.dumps({"status": "error", "error": "Daemon process terminated unexpectedly"}) + "\n")
-                sys.stdout.flush()
-                break
-
-            sys.stdout.write(response)
-            sys.stdout.flush()
-
+            # If it is exit action, forward directly and break
             try:
-                task = json.loads(line.strip())
-                if task.get("action") == "exit":
+                raw = _json.loads(line.strip())
+                if raw.get("action") == "exit":
+                    proc.stdin.write(line)
+                    proc.stdin.flush()
                     break
             except Exception:
                 pass
+
+            # Translate field names and forward to generate.py
+            try:
+                raw = _json.loads(line.strip())
+                preset = WAN_PRESETS[args.model_preset]
+                try:
+                    dur = float(raw.get("clip_duration", 1.0))
+                    n = max(round((dur * preset.sample_fps - 1) / 4), 1)
+                    frames = 4 * n + 1
+                except Exception:
+                    frames = 17
+                w, h = map(int, (args.size or preset.size).split("*"))
+                task = {
+                    "task_id": raw.get("task_id", "task_1"),
+                    "prompt": raw.get("prompt", ""),
+                    "input_image": raw.get("input_image", ""),
+                    "output_video": raw.get("output_video", ""),
+                    "clip_duration": raw.get("clip_duration", 1.0),
+                    "height": h,
+                    "width": w,
+                }
+                if raw.get("negative_prompt"):
+                    task["negative_prompt"] = raw["negative_prompt"]
+                fwd = _json.dumps(task) + "\n"
+            except Exception:
+                fwd = line
+            proc.stdin.write(fwd)
+            proc.stdin.flush()
+
+            response = proc.stdout.readline()
+            if not response:
+                sys.stdout.write(_json.dumps({"status": "error", "error": "Daemon terminated"}) + "\n")
+                sys.stdout.flush()
+                break
+            sys.stdout.write(response)
+            sys.stdout.flush()
+            # Proceed to next task
 
         proc.wait()
         return 0

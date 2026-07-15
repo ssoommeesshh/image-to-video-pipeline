@@ -1,0 +1,63 @@
+{
+  "name": "Newton's Cradle",
+  "description": "Demonstrates conservation of momentum and energy using a classic pendulum-ball setup.",
+  "subject": "Physics",
+  "educational_goal": "Show how motion transfers through the balls in a Newton's Cradle.",
+  "knowledge_source": "manual_json",
+  "metadata": {
+    "difficulty": "beginner",
+    "topic": "mechanics"
+  },
+  "clips": [
+    {
+      "name": "clip_1",
+      "scene": {
+        "scene": "Five identical metallic spheres hanging in a perfectly straight row from a horizontal frame, all touching each other at rest",
+        "camera": "Fixed, front view, centered frame",
+        "lighting": "Even studio lighting, unchanged throughout",
+        "objects": [
+          "five metallic spheres",
+          "horizontal frame",
+          "thin strings"
+        ],
+        "background": "Neutral grey"
+      },
+      "prompt_bundle": {
+        "image_prompt": "Five identical metallic spheres hanging in a perfectly straight row from a horizontal frame, each on its own thin string, all touching each other at rest. Front view, neutral grey background, even studio lighting, photorealistic, symmetrical framing.",
+        "motion_prompt": "The leftmost sphere swings backward and upward as a rigid pendulum, rotating around its fixed pivot point at the top. The string remains a fixed unstretching length \u2014 only the angle changes, not the length. The sphere lifts up and to the left in an arc like a clock pendulum being pulled back, then swings down and strikes the row. The leftmost sphere stops completely on contact and does not bounce back. The middle three and rightmost spheres remain completely stationary throughout. Camera fixed, front view.",
+        "moving_object": "Leftmost sphere only",
+        "direction": "backward and upward to the left, then down toward the row",
+        "motion": "rigid pendulum swing rotating around fixed pivot, stops dead on contact",
+        "constraints": "String remains rigid and fixed length. Pivot point fixed at top. Only leftmost sphere moves. All other four spheres stay completely stationary. No string stretching. No bouncing back after impact.",
+        "stop_condition": "Leftmost sphere stops completely on contact with the row and does not move again",
+        "clip_duration_seconds": 1.0,
+        "negative_prompt": "string stretching, string lengthening, rightmost moving, symmetric motion, bouncing back, all balls swinging, double swing, camera movement"
+      }
+    },
+    {
+      "name": "clip_2",
+      "scene": {
+        "scene": "Five metallic spheres, leftmost now touching the row having completed its swing and stopped",
+        "camera": "Fixed, front view, same framing as clip 1",
+        "lighting": "Even studio lighting, unchanged",
+        "objects": [
+          "five metallic spheres",
+          "horizontal frame",
+          "thin strings"
+        ],
+        "background": "Neutral grey"
+      },
+      "prompt_bundle": {
+        "image_prompt": "",
+        "motion_prompt": "Only the rightmost sphere swings outward and upward to the right as a rigid pendulum rotating around its fixed pivot point at the top. String length unchanged. The leftmost sphere is completely stationary and touching the row. The middle three spheres do not move at all. Camera fixed, front view.",
+        "moving_object": "Rightmost sphere only",
+        "direction": "outward and upward to the right",
+        "motion": "rigid pendulum swing rotating around fixed pivot point to the right only",
+        "constraints": "All other four spheres completely stationary. Leftmost sphere touching row and not moving. Pivot fixed at top. String length unchanged. No symmetric motion.",
+        "stop_condition": "Rightmost sphere reaches peak height on the right side",
+        "clip_duration_seconds": 1.0,
+        "negative_prompt": "leftmost sphere moving, symmetric motion, both end balls moving, all balls swinging, any ball bouncing back, camera movement"
+      }
+    }
+  ]
+}
