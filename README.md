@@ -1,3 +1,86 @@
+# Educational video module: CPU workflow
+
+Phases 1?4 provide a versioned clip-plan boundary, installable Python package, noninteractive CPU runner, and an end-to-end notebook. Start here for dataset integration. The older Wan/GPU commands below remain a separate legacy entry point.
+
+## Install
+
+Python 3.10+ is required. Python 3.12 is the tested baseline. Clone both repositories alongside each other:
+
+```bash
+git clone --branch feat/cpu-notebook-module https://github.com/ssoommeesshh/image-to-video-pipeline.git
+git clone --branch feat/pdf-grounded-rag-review https://github.com/ssoommeesshh/Edu-video-gen-dataset.git chemistry-dataset
+cd image-to-video-pipeline
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# PowerShell: .\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[rag,notebook]"
+python -m ipykernel install --user --name edu-video --display-name "Edu video CPU"
+```
+
+Open `notebooks/cpu_workflow.ipynb` in Jupyter, VS Code, or a hosted notebook and select the installed environment. Set `EDU_DATASET_DIR` if the dataset checkout is elsewhere. The notebook uses `chem_12_101` as an explicit selection, exports its existing evidence status, assigns synthetic test cards, generates three static clips, and displays a stitched MP4. It also checks blocked-record rejection and cache reuse.
+
+For a hosted notebook, clone the repositories into its filesystem and use `%pip install -e "/path/to/image-to-video-pipeline[rag,notebook]"`. No CUDA, PyTorch, model downloads, cloud credentials, or paid calls are required. FFmpeg is supplied by `imageio-ffmpeg` on supported platforms. Installation needs network access; execution with local assets does not.
+
+## Python API
+
+```python
+from edu_video import Catalog, VideoPipeline
+
+catalog = Catalog("../chemistry-dataset")
+candidates = catalog.search("boiling point organic compound")
+plan = catalog.plan("chem_12_101")  # Explicit choice; evidence gate still applies.
+
+pipeline = VideoPipeline(generator="dummy", output_dir="runs/boiling_point")
+result = pipeline.run(plan, scene_images={
+    "chem_12_101_scene": {
+        "path": "images/setup.png",
+        "provenance": "User-supplied setup photograph",
+        "review_status": "not_reviewed",
+    }
+})
+print(result.video_path, result.manifest_path)
+```
+
+`Catalog` calls the dataset planner using the current Python interpreter. It requires the `rag` extra and a compatible dataset checkout. A video-only consumer needs only `pip install .` and an exported plan plus images; it does not need the catalog, PDFs, or retrieval index.
+
+## CLI
+
+```bash
+python ../chemistry-dataset/scripts/plan_experiment.py --query "boiling point organic compound"
+python ../chemistry-dataset/scripts/plan_experiment.py --experiment-id chem_12_101 --output runs/plan.json
+edu-video --plan runs/plan.json --initial-image images/setup.png --preflight-only
+edu-video --plan runs/plan.json --initial-image images/setup.png --output-dir runs/demo
+```
+
+For multiple scenes, pass `--scene-images scene_images.json`, a map of scene IDs to image paths or image records. CLI image-map paths are relative to that JSON file; embedded plan image paths are relative to the plan file; Python API overrides and `--initial-image` are relative to the caller's working directory. New scenes require an image; continuing clips always use the actual last decoded frame. Missing or invalid images are reported together before any generation. No automatic image generation or interactive wait occurs.
+
+`--generator local --generator-script /path/to/script.py` accepts the existing local generator CLI arguments. The default is always `dummy`. Local adapters must emit matching video dimensions/frame rates and honor requested duration. Hosted adapters and deployment infrastructure are a later phase.
+
+## Contract and reproducibility
+
+`src/edu_video/schemas/clip_plan.schema.json` is the distributed copy of the dataset-owned v1 schema. Both copies must change together. Stable clip IDs, ordered steps, scene transitions, passage IDs, source references, content hashes, and review states travel in the plan. Query-only responses and blocked records are decision documents, not executable plans. The video runner validates the exported contract; it does not independently re-verify PDF passages.
+
+Per-clip duration defaults to one second labeled `provisional_cpu_test`. Override durations with the dataset planner's `--durations durations.json` (map clip IDs to seconds). These values are integration settings, not calibrated motion timings. The manifest separately records requested, generated, and retained durations; v1 retains the full clip and rejects duration mismatches instead of silently trimming. Prompt/video tuning and provider-specific durations remain future work.
+
+Every run stores `clip_plan.json`, `run_manifest.json`, individual MP4s, actual final frames, and `final_video.mp4`. Resume requires matching request and video hashes; the request includes prompts, input image content, clip configuration, and generator identity. A corrupted or changed artifact is regenerated. A failed run records the error and completed clips. Use a separate output directory for simultaneous jobs. An abnormal process kill may leave `.run.lock`; remove it only after confirming no process owns that output directory.
+
+Dummy videos are labeled `integration_output`; they establish software behavior only. Source status, image review, and video visual review remain separate. The included `cpu_plan.json` fixture has no scientific source approval and runs only with the dummy provider. Complex physics setups can use supplied stock/reference images with provenance; actual apparatus and motion accuracy need later visual testing.
+
+## Tests
+
+```bash
+python -m pip install -e ".[test,rag]"
+python -m pytest tests -q
+python -m pytest ../chemistry-dataset/tests -q
+python -m build
+```
+
+Tests cover selection/rejection, evidence gating, schema invariants, image preflight, scene continuity, actual last-frame extraction, stitched frame count, cache invalidation, corruption, and failure recovery. The module does not promise scientific correctness from a passing CPU test.
+
+---
+
+## Legacy GPU pipeline
+
 # Scientific Image-to-Video Generation Pipeline
 
 An orchestrator pipeline that generates multi-clip videos from static initial images and structured scientific experiment JSON logs. It ensures visual continuity across transitions by feeding the final frame of the preceding clip as the initial frame of the next.

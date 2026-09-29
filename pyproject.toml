@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edu-video-pipeline"
+version = "0.1.0"
+description = "Evidence-linked educational clip plans and CPU video integration"
+requires-python = ">=3.10"
+dependencies = ["Pillow>=10", "imageio-ffmpeg>=0.5", "jsonschema>=4.20"]
+
+[project.optional-dependencies]
+rag = ["numpy>=1.24", "scipy>=1.10", "scikit-learn>=1.1", "pypdf>=5"]
+notebook = ["ipykernel>=6", "nbformat>=5", "nbclient>=0.10"]
+test = ["pytest>=8", "build>=1"]
+
+[project.scripts]
+edu-video = "edu_video.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+edu_video = ["schemas/*.json", "fixtures/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

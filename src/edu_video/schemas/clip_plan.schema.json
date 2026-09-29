@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Educational clip plan v1",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "status",
+    "experiment_id",
+    "title",
+    "subject",
+    "dataset_revision",
+    "source_references",
+    "review_status",
+    "visual_review_status",
+    "clips"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "1.0"
+    },
+    "status": {
+      "const": "ready"
+    },
+    "experiment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+      "maxLength": 160
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_revision": {
+      "type": "object",
+      "required": [
+        "git_commit",
+        "content_hashes"
+      ],
+      "properties": {
+        "git_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "content_hashes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_references": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "review_status": {
+      "enum": [
+        "evidence_gate_passed",
+        "integration_fixture"
+      ]
+    },
+    "visual_review_status": {
+      "enum": [
+        "not_reviewed",
+        "approved",
+        "rejected"
+      ]
+    },
+    "clips": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "clip_id",
+          "scene_id",
+          "step_ids",
+          "new_scene",
+          "image_prompt",
+          "motion_prompt",
+          "negative_prompt",
+          "stop_condition",
+          "duration_seconds",
+          "duration_status",
+          "starting_image",
+          "source_passage_ids",
+          "review_status",
+          "visual_review_status"
+        ],
+        "properties": {
+          "clip_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+            "maxLength": 160
+          },
+          "scene_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+            "maxLength": 160
+          },
+          "step_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": [
+                "integer",
+                "string"
+              ]
+            }
+          },
+          "new_scene": {
+            "type": "boolean"
+          },
+          "image_prompt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "motion_prompt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "negative_prompt": {
+            "type": "string"
+          },
+          "stop_condition": {
+            "type": "string"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 60
+          },
+          "duration_status": {
+            "enum": [
+              "provisional_cpu_test",
+              "user_specified",
+              "calibrated"
+            ]
+          },
+          "starting_image": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "path",
+                  "provenance",
+                  "review_status"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "provenance": {
+                    "type": "string"
+                  },
+                  "review_status": {
+                    "enum": [
+                      "not_reviewed",
+                      "approved",
+                      "integration_fixture"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "source_passage_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "review_status": {
+            "enum": [
+              "evidence_gate_passed",
+              "integration_fixture"
+            ]
+          },
+          "visual_review_status": {
+            "enum": [
+              "not_reviewed",
+              "approved",
+              "rejected"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

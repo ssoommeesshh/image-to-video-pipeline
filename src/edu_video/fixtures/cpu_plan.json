@@ -1,0 +1,72 @@
+{
+  "contract_version": "1.0",
+  "status": "ready",
+  "experiment_id": "cpu_fixture",
+  "title": "CPU integration fixture",
+  "subject": "Integration test",
+  "dataset_revision": {
+    "git_commit": null,
+    "content_hashes": {
+      "fixture": "328eb066a9f8b1304b8b0fb4bef9b20546cc11b8495e2d9cf56aa8ca7744a2f9"
+    }
+  },
+  "source_references": [],
+  "review_status": "integration_fixture",
+  "visual_review_status": "not_reviewed",
+  "clips": [
+    {
+      "clip_id": "fixture_clip_1",
+      "scene_id": "scene_1",
+      "step_ids": [
+        1
+      ],
+      "new_scene": true,
+      "image_prompt": "CPU integration test card; not laboratory apparatus.",
+      "motion_prompt": "Hold the test card static.",
+      "negative_prompt": "",
+      "stop_condition": "End of test interval.",
+      "duration_seconds": 0.5,
+      "duration_status": "provisional_cpu_test",
+      "starting_image": null,
+      "source_passage_ids": [],
+      "review_status": "integration_fixture",
+      "visual_review_status": "not_reviewed"
+    },
+    {
+      "clip_id": "fixture_clip_2",
+      "scene_id": "scene_1",
+      "step_ids": [
+        2
+      ],
+      "new_scene": false,
+      "image_prompt": "CPU integration test card; not laboratory apparatus.",
+      "motion_prompt": "Hold the test card static.",
+      "negative_prompt": "",
+      "stop_condition": "End of test interval.",
+      "duration_seconds": 0.5,
+      "duration_status": "provisional_cpu_test",
+      "starting_image": null,
+      "source_passage_ids": [],
+      "review_status": "integration_fixture",
+      "visual_review_status": "not_reviewed"
+    },
+    {
+      "clip_id": "fixture_clip_3",
+      "scene_id": "scene_2",
+      "step_ids": [
+        3
+      ],
+      "new_scene": true,
+      "image_prompt": "CPU integration test card; not laboratory apparatus.",
+      "motion_prompt": "Hold the test card static.",
+      "negative_prompt": "",
+      "stop_condition": "End of test interval.",
+      "duration_seconds": 0.5,
+      "duration_status": "provisional_cpu_test",
+      "starting_image": null,
+      "source_passage_ids": [],
+      "review_status": "integration_fixture",
+      "visual_review_status": "not_reviewed"
+    }
+  ]
+}
