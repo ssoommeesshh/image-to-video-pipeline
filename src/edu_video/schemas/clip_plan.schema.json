@@ -205,6 +205,35 @@
         },
         "additionalProperties": false
       }
+    },
+    "review_provenance": {
+      "type": "object",
+      "required": [
+        "reviewers",
+        "review_kinds",
+        "human_review_status"
+      ],
+      "properties": {
+        "reviewers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "review_kinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "human_review_status": {
+          "enum": [
+            "pending",
+            "approved"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

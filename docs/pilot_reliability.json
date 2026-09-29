@@ -1,0 +1,39 @@
+{
+  "environment": "Windows, CPython 3.12.13, CPU only",
+  "checks": {
+    "missing_required_scene": "passed",
+    "removed_image_file": "passed",
+    "non_image_file": "passed",
+    "continuing_clip_previous_last_frame": "passed",
+    "new_scene_fresh_image": "passed",
+    "unchanged_resume": "passed",
+    "prompt_change_regeneration": "passed",
+    "image_change_regeneration": "passed",
+    "blocked_catalog_record": "passed",
+    "fresh_local_kernel_and_empty_output_directory": "passed",
+    "colab_or_kaggle_restart": "not_run_here"
+  },
+  "pilot": {
+    "experiment_id": "chem_12_101",
+    "source_review": "agent_visual_source_review",
+    "human_review_status": "pending",
+    "real_image": "not_selected",
+    "real_video": "not_generated"
+  },
+  "notebook_output": {
+    "frame_count": 36,
+    "fps": 12.0,
+    "size": [
+      320,
+      240
+    ],
+    "duration_seconds": 3.0
+  },
+  "gpu_used": false,
+  "paid_generation_calls": 0,
+  "automated_tests": {
+    "passed": 25,
+    "video_tests": 14,
+    "dataset_tests": 11
+  }
+}

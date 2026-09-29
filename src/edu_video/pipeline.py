@@ -116,6 +116,7 @@ class VideoPipeline:
         manifest = {"status": "running", "experiment_id": data["experiment_id"], "plan_sha256": object_hash(data),
                     "dataset_revision": data["dataset_revision"], "generator": self.generator.identity,
                     "review_status": data["review_status"], "visual_review_status": "not_reviewed",
+                    "review_provenance": data.get("review_provenance", {"human_review_status": "unspecified"}),
                     "output_kind": "integration_output" if self.generator.identity["name"] == "dummy" else "unreviewed_video",
                     "clips": []}
         write_json(self.output_dir / "clip_plan.json", data)

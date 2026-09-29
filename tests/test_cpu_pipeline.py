@@ -67,6 +67,23 @@ def test_missing_images_report_all_before_generation(plan, tmp_path, monkeypatch
     assert not pipeline.output_dir.exists()
 
 
+@pytest.mark.parametrize("fault", ["missing_scene", "removed_file", "non_image"])
+def test_one_bad_scene_stops_entire_run(plan, images, tmp_path, monkeypatch, fault):
+    pipeline = VideoPipeline(output_dir=tmp_path / "run")
+    monkeypatch.setattr(pipeline.generator, "generate_clip_video", lambda request: pytest.fail("generator called"))
+    if fault == "missing_scene":
+        del images["scene_2"]
+    elif fault == "removed_file":
+        images["scene_2"].unlink()
+    else:
+        text = tmp_path / "not_an_image.txt"
+        text.write_text("Not a scene image")
+        images["scene_2"] = text
+    with pytest.raises(ValueError, match="scene_2"):
+        pipeline.run(plan, scene_images=images)
+    assert not pipeline.output_dir.exists()
+
+
 @pytest.mark.parametrize("decision", ["blocked", "out_of_scope", "selection_required", "not_in_catalog"])
 def test_rejected_decision_never_calls_generator(decision, tmp_path, monkeypatch):
     pipeline = VideoPipeline(output_dir=tmp_path / "run")
