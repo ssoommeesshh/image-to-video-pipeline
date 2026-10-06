@@ -1,0 +1,54 @@
+{
+  "videos": [
+    {
+      "demo_id": "ammonium_chloride",
+      "title": "Ammonium chloride: qualitative analysis",
+      "subject": "Chemistry",
+      "experiment_id": null,
+      "relationship": "Prepared variant; catalog contains a broader salt-analysis record, not this exact experiment",
+      "path": "outputs/ammonium_chloride_test/final_video.mp4",
+      "provenance": "Local prepared demo; review the video before presenting",
+      "review_status": "needs_visual_review"
+    },
+    {
+      "demo_id": "acid_base_titration",
+      "title": "Acid-base titration: HCl and NaOH",
+      "subject": "Chemistry",
+      "experiment_id": null,
+      "relationship": "Prepared variant; catalog titration record uses oxalic acid, so this is not an exact match",
+      "path": "outputs/acid_base_titration/final_video.mp4",
+      "provenance": "Prepared demo slot; add a reviewed final MP4 when ready",
+      "review_status": "pending_video"
+    },
+    {
+      "demo_id": "ink_diffusion",
+      "title": "Diffusion of an ink drop in water",
+      "subject": "Chemistry",
+      "experiment_id": "chem_9_001",
+      "relationship": "Exact catalog experiment",
+      "path": "outputs/demo_videos/ink_diffusion.mp4",
+      "provenance": "Prepared demo slot; add a reviewed final MP4 when ready",
+      "review_status": "pending_video"
+    },
+    {
+      "demo_id": "polarisation",
+      "title": "Polarisation using two polaroids",
+      "subject": "Physics",
+      "experiment_id": "phy_12_111",
+      "relationship": "Exact catalog experiment",
+      "path": "outputs/demo_videos/polarisation.mp4",
+      "provenance": "Prepared demo slot; add a reviewed final MP4 when ready",
+      "review_status": "pending_video"
+    },
+    {
+      "demo_id": "newtons_cradle",
+      "title": "Newton's cradle",
+      "subject": "Physics",
+      "experiment_id": null,
+      "relationship": "Standalone visual demo; no exact catalog record or PDF passage linked",
+      "path": "outputs/newton_fresh_gpu/final_video.mp4",
+      "provenance": "Local prepared demo; review motion before presenting",
+      "review_status": "needs_visual_review"
+    }
+  ]
+}

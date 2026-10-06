@@ -1,5 +1,37 @@
 # Educational video module: CPU workflow
 
+## Local presentation UI
+
+The read-only demo UI searches the existing TF-IDF catalog and evidence graph,
+shows exact PDF passages and review labels, and plays prepared MP4s from an
+explicit cache manifest. It never launches Wan or treats a cached video as
+scientific source verification. The manifest also lists planned videos whose
+MP4s are not yet present.
+
+Clone the dataset beside this repository, then run:
+
+```bash
+python -m pip install -e ".[rag]"
+python demo_ui.py --port 7861
+```
+
+Open `http://127.0.0.1:7861`. Override the dataset location with
+`--dataset-dir /path/to/chemistry-dataset`. The web server itself uses only
+Python's standard library; the RAG query needs the package's `rag` extra.
+The evidence graph must match the current dataset inputs. A stale graph is
+reported as an error rather than showing outdated source claims.
+
+To add a reviewed prepared video, copy its final MP4 under this repository and
+edit `demo_video_cache.json`. Use an `experiment_id` only when the video depicts
+that *exact* catalog experiment. Otherwise leave it `null`; the video will be
+available in the library but will not be auto-selected from a RAG hit. Keep
+`provenance` and `review_status` accurate (for example, externally generated,
+stock footage, or pipeline output). Video paths must be relative and stay
+inside this repository. The existing HCl/NaOH titration is deliberately not
+linked to the catalog's oxalic-acid titration record.
+
+The standalone demo does not modify the existing `app.py` generation control.
+
 Phases 1?4 provide a versioned clip-plan boundary, installable Python package, noninteractive CPU runner, and an end-to-end notebook. Start here for dataset integration. The older Wan/GPU commands below remain a separate legacy entry point.
 
 ## Install
