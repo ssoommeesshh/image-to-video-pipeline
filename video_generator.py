@@ -38,6 +38,7 @@ class LocalVideoGenerator:
 	script_path: str | None = None
 	base_arguments: list[str] = field(default_factory=list)
 	working_directory: str | Path | None = None
+	require_resident_daemon: bool = False
 	_process: subprocess.Popen | None = field(default=None, init=False, repr=False)
 	_use_daemon: bool = field(default=True, init=False)
 
@@ -68,15 +69,25 @@ class LocalVideoGenerator:
 					
 					# Read READY line to ensure daemon is active
 					ready_line = self._process.stdout.readline()
-					if ready_line.strip() != "READY":
+					if ready_line.strip() not in ("READY", "READY resident"):
 						self._use_daemon = False
 						if self._process:
 							self._process.kill()
 							self._process = None
-					else:
-						# Daemon started successfully!
-						pass
+					elif self.require_resident_daemon and ready_line.strip() != "READY resident":
+						self._process.kill()
+						self._process = None
+						raise VideoGenerationError(
+							"Generator did not confirm a resident model; refusing per-clip fallback."
+						)
 				except Exception:
+					if self.require_resident_daemon:
+						if self._process:
+							self._process.kill()
+							self._process = None
+						raise VideoGenerationError(
+							"Resident generator failed to start; refusing per-clip fallback."
+						)
 					self._use_daemon = False
 					if self._process:
 						self._process.kill()
@@ -86,12 +97,13 @@ class LocalVideoGenerator:
 				import json
 				motion_prompt = request.prompt_bundle.motion_prompt or self._compose_motion_prompt(request.prompt_bundle)
 				task = {
-					"input_image": str(input_image_path),
-					"output_video": str(output_video_path),
-					"prompt": motion_prompt,
-					"clip_duration": request.prompt_bundle.clip_duration_seconds,
-					"negative_prompt": request.prompt_bundle.negative_prompt,
-				}
+						"input_image": str(input_image_path),
+						"output_video": str(output_video_path),
+						"prompt": motion_prompt,
+						"clip_duration": request.prompt_bundle.clip_duration_seconds,
+						"negative_prompt": request.prompt_bundle.negative_prompt,
+						"clip_name": request.clip_name,
+					}
 				
 				try:
 					self._process.stdin.write(json.dumps(task) + "\n")
@@ -116,6 +128,11 @@ class LocalVideoGenerator:
 							pass
 						self._process = None
 					raise VideoGenerationError(f"Daemon generation failed: {str(e)}") from e
+
+		if self.require_resident_daemon:
+			raise VideoGenerationError(
+				"Resident generator unavailable; refusing per-clip fallback."
+			)
 
 		# Fallback to standard subprocess execution
 		command = self._build_command(request, input_image_path, output_video_path)

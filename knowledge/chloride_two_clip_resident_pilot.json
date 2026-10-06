@@ -1,0 +1,66 @@
+{
+  "name": "Chloride confirmation two-clip pilot",
+  "description": "One fixed close-up test tube shot with short explanatory cards.",
+  "subject": "Chemistry",
+  "educational_goal": "Show the visible chloride confirmatory test described in the NCERT Class XI chemistry laboratory manual, Unit 7.",
+  "knowledge_source": "https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm207.pdf",
+  "clips": [
+    {
+      "name": "intro",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Chloride ion test\nOne test tube, two observations",
+        "clip_duration": 2.0
+      }
+    },
+    {
+      "name": "silver_nitrate",
+      "duration_seconds": 2.0,
+      "continuity_required": false,
+      "reference_policy": "state_keyframe",
+      "handoff_mode": "final",
+      "scene": {
+        "scene": "One transparent test tube of clear salt solution already acidified with dilute nitric acid. A dropper containing clear silver nitrate solution is held over its opening.",
+        "camera": "Locked close-up of the same tube and dropper",
+        "lighting": "Even laboratory lighting"
+      },
+      "prompt_bundle": {
+        "motion_prompt": "From the exact starting image, one clear drop falls from the dropper into the test tube. A small curdy white precipitate appears where it enters and remains visible. The tube, rack, hand and camera stay fixed. Stop after this single drop.",
+        "negative_prompt": "extra test tubes, new apparatus, colored solution, yellow or brown solid, flames, smoke, shaking, zoom, pan, unreadable labels"
+      }
+    },
+    {
+      "name": "observation_card",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Observation\nA curdy white precipitate appears",
+        "clip_duration": 2.0
+      }
+    },
+    {
+      "name": "ammonia_dissolves",
+      "duration_seconds": 2.0,
+      "continuity_required": true,
+      "reference_policy": "previous_state_keyframe",
+      "reference_clip": "silver_nitrate",
+      "handoff_mode": "final",
+      "scene": {
+        "scene": "The same test tube now contains the white precipitate formed in the previous shot.",
+        "camera": "Same locked close-up",
+        "lighting": "Same even laboratory lighting"
+      },
+      "prompt_bundle": {
+        "motion_prompt": "Continue from the exact previous test-tube frame. A small amount of clear ammonium hydroxide solution enters the same tube. The existing white precipitate gradually dissolves, leaving a clear solution. Keep the tube, rack and camera fixed; show no other action.",
+        "negative_prompt": "new tube, new precipitate, colored solution, flames, smoke, shaking, zoom, pan, changing background, text"
+      }
+    },
+    {
+      "name": "result_card",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Chloride is indicated\nFollow the manual's waste instructions",
+        "clip_duration": 3.0
+      }
+    }
+  ]
+}

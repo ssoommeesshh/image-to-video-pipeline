@@ -70,6 +70,17 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Path to the local Wan generation script in Lightning AI.",
     )
     parser.add_argument(
+        "--continuity-mode",
+        choices=["chain", "independent"],
+        default="chain",
+        help="Chain clips only when their per-clip continuity policy permits it.",
+    )
+    parser.add_argument(
+        "--require-resident-daemon",
+        action="store_true",
+        help="Fail if the generator cannot keep one model session across clips.",
+    )
+    parser.add_argument(
         "--generator-working-dir",
         default=None,
         help="Optional working directory for generator execution.",
@@ -126,6 +137,7 @@ def main(argv: list[str] | None = None) -> int:
         knowledge_dir=args.knowledge_dir,
         input_dir=args.input_dir,
         experiment_name=experiment_name,
+        continuity_mode=args.continuity_mode,
     )
 
     video_generator = LocalVideoGenerator(
@@ -137,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
             f"--model-preset={args.wan_model_preset}",
         ],
         working_directory=args.generator_working_dir,
+        require_resident_daemon=args.require_resident_daemon,
     )
 
     pipeline = ExperimentPipeline(config=config, video_generator=video_generator)

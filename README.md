@@ -93,7 +93,7 @@ Designed to run in resource-constrained cloud environments (e.g., 62GB RAM / 46G
 
 * **Multi-Clip Visual Continuity**: Decodes and extracts the exact final frame of each video clip to use as the starting frame of the next.
 * **Resume Support**: Interrupted runs automatically skip already generated clips, allowing seamless pipeline recovery.
-* **Persistent Daemon Architecture**: Keeps the heavy generative model resident in a background JSON-RPC daemon process to avoid reloading model parameters between sequential clips.
+* **Resident Kaggle experiment worker**: `kaggle_wan_resident.py` keeps the Wan session and VAE alive, pre-encodes prompts once, and caches converted INT8 experts under Kaggle temp. Experts are still loaded one at a time from local cache on the tested two-T4 path. Use `--require-resident-daemon` to prevent a silent per-clip fallback. See [the Kaggle handoff](docs/kaggle_resident_handoff.md).
 * **Robust Frame Extraction**: Employs an `ffmpeg` seek-to-end strategy with frame overwriting (`-update 1`) to guarantee pixel-perfect extraction of the absolute last frame.
 * **Scientific Prompt Builder**: Dynamically constructs image and motion prompts using structured scientific variables (states, constraints, and stop conditions).
 

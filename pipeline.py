@@ -34,6 +34,26 @@ class ManualImageRequiredError(PipelineError):
 		self.image_prompt_path = image_prompt_path
 
 
+def clip_requires_continuity(mode: str, clip: Clip) -> bool:
+	if mode != "chain":
+		return False
+	if clip.continuity_required is not None:
+		return clip.continuity_required
+	return clip.reference_policy not in {"independent", "state_keyframe"}
+
+
+def handoff_offset_seconds(clip: Clip, default: float) -> float:
+	if clip.handoff_mode == "near_end":
+		return default
+	if clip.handoff_mode == "final":
+		return 0.05
+	if clip.handoff_mode == "offset" and clip.handoff_offset_seconds is not None:
+		if clip.handoff_offset_seconds < 0:
+			raise PipelineError("handoff_offset_seconds must be non-negative")
+		return clip.handoff_offset_seconds
+	raise PipelineError(f"{clip.name}: invalid handoff_mode or missing handoff_offset_seconds")
+
+
 @dataclass(slots=True)
 class ExperimentPipeline:
 	"""Coordinates clip-by-clip generation from structured experiment data."""
@@ -55,7 +75,11 @@ class ExperimentPipeline:
 		self._prepare_directories()
 
 		clip_video_paths: list[Path] = []
+		pending_title_cards: list[tuple[Path, str, float]] = []
 		previous_frame_path = Path(initial_image_path) if initial_image_path else None
+		generated_frames: dict[str, Path] = {}
+		if self.config.continuity_mode not in {"chain", "independent"}:
+			raise PipelineError("continuity_mode must be 'chain' or 'independent'")
 
 		try:
 			for index, clip in enumerate(experiment.clips):
@@ -69,20 +93,24 @@ class ExperimentPipeline:
 					clip_duration = float(clip.metadata.get("clip_duration", 3.0))
 					output_video_path = Path(self.config.get_clip_video_file(clip_name))
 					
-					# Generate static video if it doesn't exist
-					if not output_video_path.exists():
-						print(f"[pipeline] Generating static title card video for '{clip_name}' (text: {title_text.replace('\n', ' ')})...", file=sys.stderr)
-						self._generate_title_card_video(title_text, clip_duration, output_video_path)
-					
+					pending_title_cards.append((output_video_path, title_text, clip_duration))
 					clip_video_paths.append(output_video_path)
 					# Reset continuity so the next scene starts fresh
 					previous_frame_path = None
 					continue
 
-				# Reset previous frame path if this clip transitions to a new scene
-				if clip.metadata.get("new_scene") or clip.metadata.get("is_new_scene"):
-					print(f"[pipeline] Clip '{clip_name}' starts a new scene. Resetting continuity.", file=sys.stderr)
-					previous_frame_path = None
+				new_scene = bool(clip.metadata.get("new_scene") or clip.metadata.get("is_new_scene"))
+				if new_scene and clip.reference_clip:
+					raise PipelineError(f"{clip_name}: new_scene cannot reference an earlier clip")
+				reference_frame = previous_frame_path
+				if clip.reference_clip:
+					if clip.reference_clip not in generated_frames:
+						raise PipelineError(
+							f"{clip_name}: reference clip {clip.reference_clip!r} is unavailable"
+						)
+					reference_frame = generated_frames[clip.reference_clip]
+				if new_scene:
+					print(f"[pipeline] Clip '{clip_name}' starts a new scene.", file=sys.stderr)
 
 				self._prepare_clip_directory(clip_name)
 
@@ -92,7 +120,12 @@ class ExperimentPipeline:
 				clip_input_image_path = self._resolve_clip_input_image(
 					clip=clip,
 					clip_name=clip_name,
-					previous_frame_path=previous_frame_path,
+					previous_frame_path=(
+						reference_frame
+						if clip_requires_continuity(self.config.continuity_mode, clip) and not new_scene
+						else None
+					),
+					fallback_image_path=Path(initial_image_path) if initial_image_path else None,
 					image_prompt_path=image_prompt_path,
 				)
 
@@ -125,19 +158,31 @@ class ExperimentPipeline:
 				except Exception as e:
 					print(f"[evaluator warning] Failed to compute continuity metrics: {e}", file=sys.stderr)
 
-				last_frame_path = self.frame_extractor.extract_last_frame(
+				last_frame_path = self.frame_extractor.extract_frame_before_end(
 					generated_video_path,
 					self.config.get_clip_frame_file(clip_name),
+					offset_seconds=handoff_offset_seconds(clip, self.frame_extractor.frame_offset_seconds),
 				)
 
 				clip.generated_image_path = str(clip_input_image_path)
 				clip.output_clip_path = str(generated_video_path)
 				clip.extracted_frame_path = str(last_frame_path)
 				previous_frame_path = last_frame_path
+				generated_frames[clip_name] = last_frame_path
 				clip_video_paths.append(generated_video_path)
 
 			if not clip_video_paths:
 				raise PipelineError("Experiment has no clips to generate")
+
+			generated_paths = [
+				path for path in clip_video_paths
+				if path not in {title[0] for title in pending_title_cards}
+			]
+			width, height, fps = self._video_geometry(generated_paths[0]) if generated_paths else (832, 480, 16)
+			for output_path, title_text, duration in pending_title_cards:
+				self._generate_title_card_video(
+					title_text, duration, output_path, width=width, height=height, fps=fps,
+				)
 
 			final_video_path = self.stitcher.stitch_clips(clip_video_paths, self.config.stitched_video_file)
 			return final_video_path
@@ -169,6 +214,7 @@ class ExperimentPipeline:
 		clip: Clip,
 		clip_name: str,
 		previous_frame_path: Path | None,
+		fallback_image_path: Path | None,
 		image_prompt_path: Path,
 	) -> Path:
 		if clip.generated_image_path:
@@ -210,7 +256,17 @@ class ExperimentPipeline:
 					return resolved
 			return None
 
-		# 1. Previous frame stitched image (takes precedence for video continuity)
+		# A reviewed image for a new scene takes precedence over any handoff.
+		if clip.input_frame_path:
+			resolved = _resolve_with_extensions(Path(clip.input_frame_path))
+			if resolved:
+				return resolved
+			raise ManualImageRequiredError(
+				clip_name, Path(clip.input_frame_path), image_prompt_path,
+				f"Clip-specific image is missing: {clip.input_frame_path}",
+			)
+
+		# 1. Previous frame from this or an explicitly referenced clip
 		if previous_frame_path and previous_frame_path.exists():
 			return previous_frame_path
 
@@ -220,6 +276,9 @@ class ExperimentPipeline:
 		if resolved:
 			print(f"[debug] checking clip-specific image: {expected_image_path} -> resolved={resolved}", file=sys.stderr)
 			return resolved
+
+		if fallback_image_path and fallback_image_path.exists():
+			return fallback_image_path
 
 		# 3. Candidate: workspace-level input folders (e.g. "input/" or "inputs/")
 		workspace_candidates = [
@@ -280,14 +339,31 @@ class ExperimentPipeline:
 					message="Pipeline aborted by user during manual image wait.",
 				)
 
-	def _generate_title_card_video(self, text: str, duration: float, output_path: Path) -> None:
+	@staticmethod
+	def _video_geometry(path: Path) -> tuple[int, int, int]:
+		from imageio_ffmpeg import read_frames
+
+		reader = read_frames(str(path), pix_fmt="rgb24")
+		try:
+			metadata = next(reader)
+		finally:
+			reader.close()
+		width, height = metadata["size"]
+		fps = round(metadata["fps"])
+		if fps <= 0:
+			raise PipelineError(f"Invalid video frame rate: {metadata['fps']}")
+		return width, height, fps
+
+	def _generate_title_card_video(
+		self, text: str, duration: float, output_path: Path, *,
+		width: int = 832, height: int = 480, fps: int = 16,
+	) -> None:
 		"""Generates a static title card video with centered text on a dark background."""
 		from PIL import Image, ImageDraw, ImageFont
-		import numpy as np
-		import imageio.v3 as iio
+		from imageio_ffmpeg import get_ffmpeg_exe
+		import subprocess
 
-		# Create dark background image matching Wan 2.2 preset dimensions (832x480)
-		width, height = 832, 480
+		# Match the actual Wan clip dimensions so concat can stream-copy all clips.
 		img = Image.new("RGB", (width, height), "#0d0d11")
 		draw = ImageDraw.Draw(img)
 
@@ -332,12 +408,22 @@ class ExperimentPipeline:
 			y = start_y + idx * line_height
 			draw.text((x, y), line, fill="#ffffff", font=font)
 
-		# Convert PIL image to stack of frames representing the duration at 16 FPS
-		fps = 16
-		num_frames = int(duration * fps)
-		frame = np.array(img)
-		video_frames = np.repeat(frame[np.newaxis, :, :, :], num_frames, axis=0)
-
-		# Write static video
+		# Encode one still image; avoid keeping all card frames in RAM.
+		num_frames = max(1, round(duration * fps))
 		output_path.parent.mkdir(parents=True, exist_ok=True)
-		iio.imwrite(str(output_path), video_frames, fps=fps, codec="libx264")
+		card_image = output_path.with_suffix(".card.png")
+		try:
+			img.save(card_image)
+			result = subprocess.run(
+				[
+					get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-y",
+					"-loop", "1", "-framerate", str(fps), "-i", str(card_image),
+					"-frames:v", str(num_frames), "-c:v", "libx264",
+					"-pix_fmt", "yuv420p", str(output_path),
+				],
+				capture_output=True, text=True, errors="replace",
+			)
+			if result.returncode:
+				raise PipelineError(f"Title card encoding failed: {result.stderr.strip()}")
+		finally:
+			card_image.unlink(missing_ok=True)
