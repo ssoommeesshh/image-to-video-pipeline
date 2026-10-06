@@ -1,0 +1,127 @@
+{
+  "name": "Ammonium chloride qualitative analysis pilot",
+  "description": "Three separate close-up tests using the existing ammonium-chloride starting images. Short cards explain observations between generated clips.",
+  "subject": "Chemistry",
+  "educational_goal": "Illustrate ammonium and chloride confirmatory observations with short, single-action clips.",
+  "knowledge_sources": [
+    "https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm207.pdf",
+    "https://www.atf.gov/file/178136/download"
+  ],
+  "clips": [
+    {
+      "name": "title_naoh",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Ammonium ion test\nNaOH, then an HCl-dipped rod",
+        "clip_duration": 2.0
+      }
+    },
+    {
+      "name": "clip_1",
+      "input_frame_path": "outputs/ammonium_chloride_test/clip_1/input_image.jpeg",
+      "duration_seconds": 2.0,
+      "continuity_required": false,
+      "handoff_mode": "final",
+      "metadata": {"new_scene": true},
+      "scene": {
+        "scene": "One glass tube containing ammonium chloride crystals with a clear sodium hydroxide dropper above it.",
+        "camera": "Fixed close-up",
+        "lighting": "Even laboratory lighting"
+      },
+      "prompt_bundle": {
+        "motion_prompt": "Use the exact starting image. One clear drop falls from the existing dropper onto the white salt in the same glass tube. Keep the tube, clamp and camera fixed. The liquid wets the crystals; do not show visible fumes yet. Only this one action occurs.",
+        "negative_prompt": "extra tube, new dropper, colored liquid, flames, boiling, thick smoke, white fumes, precipitate, camera movement, zoom, text"
+      }
+    },
+    {
+      "name": "clip_2",
+      "duration_seconds": 2.0,
+      "continuity_required": true,
+      "reference_clip": "clip_1",
+      "handoff_mode": "final",
+      "scene": {
+        "scene": "The same ammonium salt and NaOH tube, following gentle warming between shots. Ammonia gas is invisible.",
+        "camera": "Same fixed close-up",
+        "lighting": "Same laboratory lighting"
+      },
+      "prompt_bundle": {
+        "motion_prompt": "Continue from the exact last frame of the previous clip. A thin glass rod dipped in hydrochloric acid approaches the mouth of the same test tube from the left. A small patch of white ammonium chloride fumes appears only near the rod tip where it meets the invisible ammonia gas. Keep the tube, clamp and camera fixed. One slow approach, then hold.",
+        "negative_prompt": "fumes before rod arrives, smoke from salt, flame, boiling, new tube, extra apparatus, colored gas, dramatic cloud, pan, zoom, text"
+      }
+    },
+    {
+      "name": "title_nessler",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Ammonium ion: Nessler spot test\nOrange-brown precipitate",
+        "clip_duration": 2.0
+      }
+    },
+    {
+      "name": "clip_3",
+      "input_frame_path": "outputs/ammonium_chloride_test/clip_3/input_image.jpeg",
+      "duration_seconds": 2.0,
+      "continuity_required": false,
+      "handoff_mode": "final",
+      "metadata": {"new_scene": true},
+      "scene": {
+        "scene": "A separate vessel holding clear ammonium chloride water extract, with a pale-yellow Nessler reagent dropper above it.",
+        "camera": "Fixed close-up",
+        "lighting": "Even laboratory lighting"
+      },
+      "prompt_bundle": {
+        "motion_prompt": "Use the exact starting image. One pale-yellow drop falls from the existing dropper into the clear ammonium salt extract. A small orange-brown precipitate appears where the drop enters and remains in the same vessel. Keep the dropper, vessel and camera fixed. Show only one drop and the local color change.",
+        "negative_prompt": "gas tubing, new vessel, additional droppers, large explosion of color, black solid, flames, shaking, zoom, pan, text"
+      }
+    },
+    {
+      "name": "title_silver_nitrate",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Chloride ion test\nSilver nitrate, then ammonia solution",
+        "clip_duration": 2.0
+      }
+    },
+    {
+      "name": "clip_4",
+      "input_frame_path": "outputs/ammonium_chloride_test/clip_4/input_image.jpeg",
+      "duration_seconds": 2.0,
+      "continuity_required": false,
+      "handoff_mode": "final",
+      "metadata": {"new_scene": true},
+      "scene": {
+        "scene": "A separate glass tube holding clear ammonium chloride water extract with a silver nitrate dropper above it.",
+        "camera": "Fixed close-up",
+        "lighting": "Even laboratory lighting"
+      },
+      "prompt_bundle": {
+        "motion_prompt": "Use the exact starting image. One clear silver nitrate drop falls from the existing dropper into the same clear salt extract. A small curdy white silver chloride precipitate appears near the drop and remains visible. Keep the tube, stand, hand and camera fixed. One drop, then hold.",
+        "negative_prompt": "extra tube, extra hand, colored solid, yellow precipitate, smoke, flames, vigorous motion, zoom, pan, text"
+      }
+    },
+    {
+      "name": "title_ammonia",
+      "metadata": {
+        "is_title": true,
+        "title_text": "Next: add dilute ammonia solution\nThe white precipitate dissolves",
+        "clip_duration": 2.0
+      }
+    },
+    {
+      "name": "clip_5",
+      "duration_seconds": 2.0,
+      "continuity_required": true,
+      "reference_clip": "clip_4",
+      "handoff_mode": "final",
+      "scene": {
+        "scene": "The same glass tube now contains the curdy white silver chloride precipitate.",
+        "camera": "Same fixed close-up",
+        "lighting": "Same laboratory lighting"
+      },
+      "prompt_bundle": {
+        "motion_prompt": "Continue from the exact last frame of the silver nitrate clip. Dilute ammonia solution was added to this same tube between shots. The existing white precipitate gradually thins and dissolves, leaving a clearer liquid. The dropper does not release another drop. Keep the tube, stand, hand and camera fixed. Show only this gradual change.",
+        "negative_prompt": "new tube, falling drop, more white precipitate, colored liquid, smoke, flames, shaking, zoom, pan, text"
+      }
+    }
+  ]
+}

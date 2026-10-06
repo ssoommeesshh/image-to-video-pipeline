@@ -135,6 +135,11 @@ not provide this Kaggle Wan worker path.
 
 ## Extending beyond this pilot
 
+The original ammonium-chloride experiment now has a ready-to-run five-clip
+fixture using its three tracked starting images. See
+[the ammonium-chloride Kaggle run](ammonium_chloride_resident_run.md) for the
+exact command and chemistry notes.
+
 For the teammate's six-segment salt analysis, copy its experiment JSON into
 the original pipeline and inspect every clip's `continuity_required`,
 `reference_clip`, and `input_frame_path`. This original pipeline now reads
