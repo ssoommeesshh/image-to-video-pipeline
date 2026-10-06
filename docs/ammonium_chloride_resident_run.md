@@ -44,4 +44,9 @@ print(output / 'ammonium_chloride/final_video.mp4')
 
 The five generated clips are `clip_1` through `clip_5`. Clips 2 and 5 use the preceding generated frame; clips 1, 3 and 4 start from the three supplied images. Each Wan call requests two seconds, and four explanation cards are rendered on CPU. This is roughly 18 seconds before any stitch timing adjustment. The card before clip 5 explains that ammonia solution is added between shots; the existing silver-nitrate dropper does not have to turn into a different reagent on camera. It is a full sequence test, so run it after the shorter two-clip pilot if the resident worker has not yet passed a Kaggle GPU run. The CPU test verifies input routing and stitching, but cannot predict Wan's visual fidelity or memory use.
 
+If the full experiment's T5 startup fails or the Kaggle kernel disconnects,
+use the [clip-by-clip recovery runner](ammonium_chloride_chunked_kaggle.md).
+It can reuse the successful first-clip pilot and save each later clip before
+starting the next one.
+
 For the white-fume observation, [NCERT's Class XI manual](https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm207.pdf) specifies NaOH, warming, and an HCl-dipped rod near the tube mouth. The fume belongs at the rod, not rising spontaneously from the salt. The manual's Nessler step passes ammonia through the reagent; this fixture instead uses the [ATF direct Nessler spot-test method](https://www.atf.gov/file/178136/download) to fit the existing dropper image. It is labeled as a spot test in the video. The chloride sequence uses silver nitrate on a water extract and ammonium hydroxide to dissolve the white precipitate, as described by NCERT. Have a chemistry reviewer inspect the resulting frames before treating them as an accurate demonstration.
