@@ -53,6 +53,7 @@ for url, folder in [
 ]:
     if not folder.exists():
         subprocess.run(["git", "clone", url, str(folder)], check=True)
+subprocess.run(["git", "-C", str(PIPELINE), "checkout", "feat/cpu-notebook-module"], check=True)
 subprocess.run(["git", "-C", str(WAN), "checkout", "--detach", "78fb5ce"], check=True)
 print("Pipeline:", subprocess.check_output(["git", "-C", str(PIPELINE), "rev-parse", "--short", "HEAD"], text=True).strip())
 print("Wan:", subprocess.check_output(["git", "-C", str(WAN), "rev-parse", "--short", "HEAD"], text=True).strip())
